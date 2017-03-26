@@ -9,7 +9,7 @@ function data = fetch_data(key,tkr,date_beg,date_end)
     
     bar = waitbar(0,'Fetching data from Quandl...');
     
-	try
+    try
         Quandl.auth(key);
 
         for i = 1:tkr_len
@@ -61,7 +61,7 @@ function data = fetch_data(key,tkr,date_beg,date_end)
         end
         
         close(bar);
-	catch e
+    catch e
         close(bar);
         
         id = e.identifier;
@@ -71,6 +71,6 @@ function data = fetch_data(key,tkr,date_beg,date_end)
         else
             error(['Error in ' id '.']);
         end
-	end
+    end
 
 end
