@@ -1,0 +1,28 @@
+% [INPUT]
+% data = A t-by-n matrix containing the time series.
+% bw   = The bandwidth (dimension) of each rolling window.
+%
+% [OUTPUT]
+% win  = A column vector containing the rolling windows.
+%
+% [NOTE]
+% If the number of observations is less than or equal to the specified bandwidth, a single rolling window containing all the observations is returned.
+
+function win = get_rolling_windows(data,bw)
+
+    t = size(data,1);
+    
+    if (bw >= t)
+        win = cell(1,1);
+        win{1} = data;
+        return;
+    end
+
+    lim = t - bw + 1;
+    win = cell(lim,1);
+
+    for i = 1:lim
+        win{i} = data(i:bw+i-1,:);
+    end
+
+end
