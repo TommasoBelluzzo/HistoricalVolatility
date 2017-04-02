@@ -1,76 +1,133 @@
-function data = fetch_data(key,tkr,date_beg,date_end)
+% [INPUT]
+% tkrs     = A t-by-n matrix containing the time series.
+% date_beg = A scalar representing the bandwidth (dimension) of each rolling window.
+% date_end = A scalar representing the bandwidth (dimension) of each rolling window.
+%
+% [OUTPUT]
+% data     = A t-by-6 table containing the following time series:
+%             - Date (the dates of the observations)
+%             - Open (the opening prices)
+%             - High (the highest prices)
+%             - Low (the lowest prices)
+%             - Close (the closing prices)
+%             - Return (the log returns)
 
-    if (ischar(tkr))
-        tkr = {tkr};
+function data = fetch_data(varargin)
+
+    persistent p;
+
+    if isempty(p)
+        p = inputParser();
+        p.addRequired('tkrs',@(x)validateattributes(x,{'cell','char'},{'nonempty','vector'}));
+        p.addRequired('date_beg',@(x)validateattributes(x,{'char'},{'nonempty','size',[1,NaN]}));
+        p.addRequired('date_end',@(x)validateattributes(x,{'char'},{'nonempty','size',[1,NaN]}));        
     end
+
+    p.parse(varargin{:});
+    res = p.Results;
+    tkrs = res.tkrs;
+    date_beg = res.date_beg;
+    date_end = res.date_end;
+
+    try
+        num_beg = datenum(date_beg,'yyyy-mm-dd');
+        check = datestr(num_beg,'yyyy-mm-dd');
+
+        if (~isequal(check,date_beg))
+            throw(MException('',''));
+        end
+    catch
+        error('Invalid start date specified.');
+    end
+
+    try
+        num_end = datenum(date_end,'yyyy-mm-dd');
+        check = datestr(num_end,'yyyy-mm-dd');
+
+        if (~isequal(check,date_end))
+            throw(MException('',''));
+        end
+    catch
+        error('Invalid end date specified.');
+    end
+
+    if ((num_end - num_beg) < 30)
+        error('The start date must be anterior to the end date by at least 30 days.');
+    end
+
+    data = fetch_data_internal(tkrs,date_beg,date_end);
+
+end
+
+function data = fetch_data_internal(tkrs,date_beg,date_end)
+
+    if (ischar(tkrs))
+        tkrs = {tkrs};
+    end
+     
+    tkrs_len = length(tkrs);
     
-    tkr_len = length(tkr);
-    data = cell(tkr_len,1);
+    data = cell(tkrs_len,1);
+    tkr_dbs = cell(tkrs_len,1);
     
     bar = waitbar(0,'Fetching data from Quandl...');
     
     try
-        Quandl.auth(key);
+        Quandl.auth('MWPG-zcWXgSupzjNqpJa');
 
-        for i = 1:tkr_len
-            tkr_cur = tkr{i};
+        for i = 1:tkrs_len
+            tkr = tkrs{i};
+            tkr_spl = strsplit(tkr,'/');
+            tkr_db = tkr_spl{1};
 
-            [ts,head] = Quandl.get(tkr_cur,'type','data','start_date',date_beg,'end_date',date_end);
-            ts = flipud(ts);
-            head = regexprep(head,'\s','');
+            switch tkr_db
+                case 'GOOG'
+                    cols = {'Date' 'Open' 'High' 'Low' 'Close'};
+                    cols_len = length(cols);
+                case 'WIKI'
+                    cols = {'Date' 'Adj. Open' 'Adj. High' 'Adj. Low' 'Adj. Close'};
+                    cols_len = length(cols);
+                case 'YAHOO'
+                    cols = {'Date' 'Open' 'High' 'Low' 'Close' 'Adjusted Close'};
+                    cols_len = length(cols);
+                otherwise
+                    error(['The database ' tkr_db ' is not supported.']);
+            end
             
+            [ts,head] = Quandl.get(tkr,'type','data','start_date',date_beg,'end_date',date_end);
+            
+            if (length(head) < cols_len)
+                error(['Missing time series for ticker ' tkr '.']);
+            end
+
+            ts = flipud(ts(:,ismember(head,cols)));
             ts_len = size(ts,1);
-            head_len = length(head);
-            
-            if (head_len < 4)
-                throw(MException('fetch_data:HeadersLength','missing time series for ticker %s',tkr_cur));
-            end
-            
-            ts_fin = array2table(zeros(ts_len,6),'VariableNames',{'Date' 'Open' 'High' 'Low' 'Close' 'Returns'});
-            ts_add = 0;
-            
-            for j = 1:length(head)
-                switch head{j}
-                    case 'Date'
-                        ts_fin.Date = datestr(ts(:,j),'yyyy-mm-dd');
-                        ts_add = ts_add + 1;
-                    case 'Open'
-                        ts_fin.Open = ts(:,j);
-                        ts_add = ts_add + 1;
-                    case 'High'
-                        ts_fin.High = ts(:,j);
-                        ts_add = ts_add + 1;
-                    case 'Low'
-                        ts_fin.Low = ts(:,j);
-                        ts_add = ts_add + 1;
-                    case 'Close'
-                        ts_j = ts(:,j);
-                        ts_fin.Close = ts_j;
-                        ts_fin.Returns = [0; diff(log(ts_j))];
-                        ts_add = ts_add + 2;
-                end
-            end
 
-            if (ts_add < 6)
-                throw(MException('fetch_data:HeadersLength','missing time series for ticker %s',tkr_cur));
+            if (ts_len < cols_len)
+                error(['Missing time series for ticker ' tkr '.']);
             end
             
-            data{i,1} = ts_fin;
+            if (strcmp(tkr_db,'YAHOO'))
+                ratio = ts(:,6) ./ ts(:,5);
+                ts(:,2:5) = ts(:,2:5) .* repmat(ratio,1,4);
+            end
+            
+            ts(:,6) = [NaN; diff(log(ts(:,5)))];
+            data{i} = array2table(ts,'VariableNames',{'Date' 'Open' 'High' 'Low' 'Close' 'Return'});
 
-            waitbar((i / tkr_len),bar);
+            tkr_dbs{i} = tkr_db;
+            
+            waitbar((i / tkrs_len),bar);
+        end
+
+        if (length(unique(tkr_dbs)) ~= 1)
+            warning('For a matter of coherence, it is recommended to retrieve all the data from a single Quandl database.');
         end
         
         close(bar);
     catch e
         close(bar);
-        
-        id = e.identifier;
-        
-        if (strfind(id,'fetch_data:'))
-            error(['Error in ' id ': ' e.message '.']);
-        else
-            error(['Error in ' id '.']);
-        end
+        rethrow(e);
     end
 
 end
