@@ -27,7 +27,7 @@ function vol = estimate_volatility(varargin)
 
     if isempty(p)
         p = inputParser();
-        p.addRequired('data',@(x)validateattributes(x,{'table'},{'nonempty','ncols',6}));
+        p.addRequired('data',@(x)validateattributes(x,{'table'},{'2d','nonempty','ncols',6}));
         p.addRequired('est',@(x)any(validatestring(x,{'CC','CCD','GK','GKYZ','HT','P','RS','YZ'})));
         p.addRequired('bw',@(x)validateattributes(x,{'numeric'},{'scalar','integer','real','finite','>=',2}));
         p.addOptional('cln',true,@(x) validateattributes(x,{'logical'},{'scalar'}));
@@ -50,6 +50,8 @@ function vol = estimate_volatility(varargin)
 end
 
 function vol = estimate_volatility_internal(data,est,bw,cln)
+
+    t = size(data,1);
 
     switch (est)
         case 'CC'
@@ -105,20 +107,16 @@ function vol = estimate_volatility_internal(data,est,bw,cln)
 
     win = get_rolling_windows(res,bw);
     win_len = length(win);
-
+    win_dif = t - win_len;
+    
+    vol = NaN(t,1);
+    
+    for i = 1:win_len
+        vol(i+win_dif) = fun(win{i});
+    end
+    
     if (cln)
-        vol = zeros(win_len,1);
-
-        for i = 1:win_len
-            vol(i) = fun(win{i});
-        end
-    else
-        win_dif = t - win_len;
-        vol = NaN(t,1);
-        
-        for i = 1:win_len
-            vol(i+win_dif) = fun(win{i});
-        end
+        vol(isnan(vol)) = [];
     end
 
 end
