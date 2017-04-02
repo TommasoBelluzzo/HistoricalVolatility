@@ -41,17 +41,17 @@ function vol = estimate_volatility(varargin)
     bw = res.bw;
     cln = res.cln;
 
-    if (bw >= size(data,1))
+    t = size(data,1);
+    
+    if (bw >= t)
         error('The number of observations must be greater than the dimension of each rolling window.');
     end
     
-    vol = estimate_volatility_internal(data,est,bw,cln);
+    vol = estimate_volatility_internal(data,t,est,bw,cln);
 
 end
 
 function vol = estimate_volatility_internal(data,est,bw,cln)
-
-    t = size(data,1);
 
     switch (est)
         case 'CC'
