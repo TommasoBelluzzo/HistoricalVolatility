@@ -1,7 +1,7 @@
 % [INPUT]
-% tkrs     = A t-by-n matrix containing the time series.
-% date_beg = A scalar representing the bandwidth (dimension) of each rolling window.
-% date_end = A scalar representing the bandwidth (dimension) of each rolling window.
+% tkrs     = A string or a vector of strings representing the ticker symbols.
+% date_beg = A string representing the start date in the format "yyyy-mm-dd".
+% date_end = A string representing the end date in the format "yyyy-mm-dd".
 %
 % [OUTPUT]
 % data     = A t-by-6 table containing the following time series:
