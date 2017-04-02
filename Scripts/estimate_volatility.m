@@ -51,7 +51,7 @@ function vol = estimate_volatility(varargin)
 
 end
 
-function vol = estimate_volatility_internal(data,est,bw,cln)
+function vol = estimate_volatility_internal(data,t,est,bw,cln)
 
     switch (est)
         case 'CC'
