@@ -55,7 +55,7 @@ function analyse_volatility(varargin)
         error('The sum of the quantiles must be equal to 1.');
     end
     
-	analyse_volatility_internal(tkr,year_beg,year_end,est,bws,bws_len,qnts);
+    analyse_volatility_internal(tkr,year_beg,year_end,est,bws,bws_len,qnts);
     
 end
 
@@ -125,37 +125,7 @@ function plot_cones(bws,bws_len,qnts,vol_hi,vol_lo,vol_max,vol_med,vol_min,vol_r
 
 end
 
-function plot_cones(bws,bws_len,qnts,vol_hi,vol_lo,vol_max,vol_med,vol_min,vol_rea,vols)
+function plot_curves(bws,bws_len,qnts,vol_hi,vol_lo,vol_max,vol_med,vol_min,vol_rea,vols)
 
-    fig = figure(1);
-    set(fig,'Units','normalized','Position',[10 10 0.6 0.6]);
-    
-    sp_1 = subplot(1,3,1:2);
-    plot(sp_1,bws,vol_max,'-r',bws,vol_hi,'-b',bws,vol_med,'-g',bws,vol_lo,'-c',bws,vol_min,'-k',bws,vol_rea,'--m'); 
-    xlabel(sp_1,'Bandwidth');
-    ylabel(sp_1,'Volatility');
-    legend('Maximum',sprintf('%0.0f Percentile',qnts(2)*100),'Median',sprintf('%0.0f Percentile',qnts(1)*100),'Minimum','Realized','Location','best');
-
-    sp_2 = subplot(1,3,3);
-    boxplot(sp_2,vols,bws,'Notch','on');
-    hold on;
-        plot(1:bws_len,vol_rea,'-m');
-    hold off;
-    
-    x_max = max(bws);
-    x_min = min(bws);
-    y_max = ceil(max(vol_max) * 100) / 100;
-    y_min = floor(min(vol_min) * 100) / 100;
-
-    y_tck = y_min:0.01:y_max;
-    y_lab = sprintfc('%0.0f%%', vertcat((y_tck .* 100)));
-
-    set(sp_1,'XLim',[x_min x_max],'XTick',bws,'XTickLabel',bws);
-	set(sp_2,'YAxisLocation','right');
-    set([sp_1 sp_2],'YLim',[y_min y_max],'YTick',y_tck,'YTickLabel',y_lab);
-
-    suptitle('Volatility Cones');
-    
-    movegui(fig,'center');
 
 end
