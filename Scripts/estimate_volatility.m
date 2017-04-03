@@ -16,7 +16,7 @@
 %         - RS (the estimator proposed by Rogers & Satchell, 1991)
 %         - YZ (the estimator proposed by Yang & Zhang, 2000)
 % bw   = An integer representing he bandwidth (dimension) of each rolling window.
-% cln  = A boolean that indicates whether to remove the NaN values at the beginning the result.
+% cln  = A boolean that indicates whether to remove the NaN values at the beginning the result (optional, default=true).
 %
 % [OUTPUT]
 % vol  = A column vector containing the estimated historical volatility.
@@ -30,7 +30,7 @@ function vol = estimate_volatility(varargin)
         p.addRequired('data',@(x)validateattributes(x,{'table'},{'2d','nonempty','ncols',6}));
         p.addRequired('est',@(x)any(validatestring(x,{'CC','CCD','GK','GKYZ','HT','P','RS','YZ'})));
         p.addRequired('bw',@(x)validateattributes(x,{'numeric'},{'scalar','integer','real','finite','>=',2}));
-        p.addOptional('cln',true,@(x) validateattributes(x,{'logical'},{'scalar'}));
+        p.addOptional('cln',true,@(x)validateattributes(x,{'logical'},{'scalar'}));
     end
 
     p.parse(varargin{:});
