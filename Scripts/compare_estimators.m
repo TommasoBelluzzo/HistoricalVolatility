@@ -37,7 +37,7 @@ end
 
 function compare_estimators_internal(tkr,year_beg,year_end,bw)
 
-	tkr_spl = strsplit(tkr,'/');   
+    tkr_spl = strsplit(tkr,'/');   
     tkr_cod = tkr_spl{2};
 
     date_beg = datestr(datenum(year_beg,1,1),'yyyy-mm-dd');
@@ -66,7 +66,7 @@ function compare_estimators_internal(tkr,year_beg,year_end,bw)
 
     plot_overview(tit,ests,ests_len,res,data.Date);
     
-	res(any(isnan(res),2),:) = [];
+    res(any(isnan(res),2),:) = [];
     
     plot_correlations(tit,ests,ests_len,res);
     plot_efficiency(tit,ests,ests_len,res);
@@ -77,9 +77,9 @@ end
 function plot_overview(tit,ests,ests_len,res,dates)
 
     tit = [tit ' | Overview'];
-	subs = NaN(ests_len,1);
+    subs = NaN(ests_len,1);
 
-	y_max = ceil(max(max(res)) * 100) / 100;
+    y_max = ceil(max(max(res)) * 100) / 100;
     y_min = floor(min(min(res)) * 100) / 100;
     y_tck = y_min:0.05:y_max;
     y_lbl = sprintfc('%1.0f%%', vertcat(y_tck .* 100));
@@ -201,10 +201,10 @@ function plot_regressions(tit,ests,ests_len,res)
 
     tit = [tit ' | Regressions'];
     lims = zeros(ests_len,4);
-	subs = NaN(ests_len,1);
+    subs = NaN(ests_len,1);
     
     y = res(:,1);
-	mdls = cell(ests_len,1);
+    mdls = cell(ests_len,1);
     
     for i = 1:ests_len
         mdl = fitlm(res(:,i),y,'linear','Intercept',true);
@@ -256,7 +256,7 @@ function plot_regressions(tit,ests,ests_len,res)
             plo = plot(sub,x,y_hat,'-b');
         hold off;
 
-        strs = {sprintf('a: %.4f',mdl.A) sprintf('b: %.4f',mdl.B) sprintf('Adj. R²: %.4f',mdl.AdjR2)};
+        strs = {sprintf('a: %.4f',mdl.A) sprintf('b: %.4f',mdl.B) sprintf('Adj. RÂ²: %.4f',mdl.AdjR2)};
         ann = annotation('TextBox',[0 0 1 1],'String',strs,'EdgeColor','none','FitBoxToText','on','FontSize',7);
         set(ann,'Parent',sub,'Position',[0 0.7 0.1 0.1]);
         
