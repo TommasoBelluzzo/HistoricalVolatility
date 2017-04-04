@@ -22,7 +22,7 @@ function analyse_volatility(varargin)
 
     persistent p;
 
-    if isempty(p)
+    if (isempty(p))
         p = inputParser();
         p.addRequired('tkr',@(x)validateattributes(x,{'char'},{'nonempty','size',[1,NaN]}));
         p.addRequired('year_beg',@(x)validateattributes(x,{'numeric'},{'scalar','integer','real','finite','>=',1950}));
