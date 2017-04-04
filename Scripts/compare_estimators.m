@@ -92,7 +92,6 @@ function plot_overview(tit,ests,ests_len,res,dates)
         
         sub = subplot(2,4,i);
         plot(sub,dates,res(:,i));
-        datetick('x','yyyy','KeepTicks');
         set(sub,'XTick',[]);
         
         if (i <= 4)
