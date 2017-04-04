@@ -20,7 +20,7 @@ function data = fetch_data(varargin)
 
     persistent p;
 
-    if isempty(p)
+    if (isempty(p))
         p = inputParser();
         p.addRequired('tkrs',@(x)validateattributes(x,{'cell','char'},{'vector','nonempty'}));
         p.addRequired('date_beg',@(x)validateattributes(x,{'char'},{'nonempty','size',[1,NaN]}));

@@ -12,7 +12,7 @@ function win = get_rolling_windows(varargin)
 
     persistent p;
 
-    if isempty(p)
+    if (isempty(p))
         p = inputParser();
         p.addRequired('data',@(x)validateattributes(x,{'numeric'},{'2d','nonempty'}));
         p.addRequired('bw',@(x)validateattributes(x,{'numeric'},{'scalar','integer','real','finite','>=',2}));

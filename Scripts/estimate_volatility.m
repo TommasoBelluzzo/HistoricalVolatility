@@ -12,6 +12,7 @@
 %         - GK (the estimator proposed by Garman & Klass, 1980)
 %         - GKYZ (a extension of the previous estimator proposed by Yang & Zhang, 2000)
 %         - HT (the estimator proposed by Hodges & Tompkins, 2002)
+%         - M (the estimator proposed by Meilijson, 2009)
 %         - P (the estimator proposed by Parkinson, 1980)
 %         - RS (the estimator proposed by Rogers & Satchell, 1991)
 %         - YZ (the estimator proposed by Yang & Zhang, 2000)
@@ -25,10 +26,10 @@ function vol = estimate_volatility(varargin)
 
     persistent p;
 
-    if isempty(p)
+    if (isempty(p))
         p = inputParser();
         p.addRequired('data',@(x)validateattributes(x,{'table'},{'2d','nonempty','ncols',6}));
-        p.addRequired('est',@(x)any(validatestring(x,{'CC','CCD','GK','GKYZ','HT','P','RS','YZ'})));
+        p.addRequired('est',@(x)any(validatestring(x,{'CC','CCD','GK','GKYZ','HT','M','P','RS','YZ'})));
         p.addRequired('bw',@(x)validateattributes(x,{'numeric'},{'scalar','integer','real','finite','>=',2}));
         p.addOptional('cln',true,@(x)validateattributes(x,{'logical'},{'scalar'}));
     end
@@ -44,7 +45,7 @@ function vol = estimate_volatility(varargin)
     t = size(data,1);
     
     if (bw >= t)
-        error('The number of observations must be greater than the dimension of each rolling window.');
+        error('The number of observations must be greater than the bandwidth.');
     end
     
     vol = estimate_volatility_internal(data,t,est,bw,cln);
@@ -63,16 +64,16 @@ function vol = estimate_volatility_internal(data,t,est,bw,cln)
             param = sqrt(252 / (bw - 1));
             fun = @(x) param * sqrt(sum(x));
         case 'GK'
-            log_hl = log(data.High ./ data.Low);
-            log_co = log(data.Close ./ data.Open);
-            res = 0.5 * (log_hl .^ 2) - ((2 * log(2)) - 1) * (log_co .^ 2);
+            co = log(data.Close ./ data.Open);
+            hl = log(data.High ./ data.Low);
+            res = 0.5 * (hl .^ 2) - ((2 * log(2)) - 1) * (co .^ 2);
             param = sqrt(252 / bw);
             fun = @(x) param * sqrt(sum(x));
         case 'GKYZ'
-            log_hl = log(data.High ./ data.Low);
-            log_co = log(data.Close ./ data.Open);
-            log_oc = log(data.Open ./ [NaN; data.Close(1:end-1)]) .^ 2;
-            res = log_oc + 0.5 * (log_hl .^ 2) - ((2 * log(2)) - 1) * (log_co .^ 2);
+            co = log(data.Close ./ data.Open);
+            hl = log(data.High ./ data.Low);
+            oc = log(data.Open ./ [NaN; data.Close(1:end-1)]) .^ 2;
+            res = oc + 0.5 * (hl .^ 2) - ((2 * log(2)) - 1) * (co .^ 2);
             param = sqrt(252 / bw);
             fun = @(x) param * sqrt(sum(x));
         case 'HT'
@@ -80,25 +81,39 @@ function vol = estimate_volatility_internal(data,t,est,bw,cln)
             dif = t - bw;
             param = sqrt(252 / (1 - (bw / dif) + (((bw ^ 2) - 1) / (3 * (dif ^ 2)))));
             fun = @(x) param * std(x);
+        case 'M'
+            co = log(data.Close ./ data.Open);
+            ho = log(data.High ./ data.Open);
+            lo = log(data.Low ./ data.Open);
+            s2 = log(data.Close ./ data.Open) .^ 2;
+            co_neg = co < 0;
+            co_swi = -1 .* co;
+            ho_swi = ho;
+            ho_swi(co_neg) = -1 .* lo(co_neg);
+            lo_swi = lo;          
+            lo_swi(co_neg) = -1 .* ho(co_neg);
+            s1 = 2 .* (((ho_swi - co_swi) .^ 2) + (lo_swi .^ 2));
+            s3 = 2 .* ((ho_swi - co_swi - lo_swi) .* co_swi);
+            s4 = -1 .* (((ho_swi - co_swi) .* lo_swi) ./ ((2 * log(2)) - 1.25));
+            res = (0.273520 * s1) + (0.160358 * s2) + (0.365212 * s3) + (0.200910 * s4);
+            param = sqrt(252 / bw);
+            fun = @(x) param * sqrt(sum(x));
         case 'P'        
             res = log(data.High ./ data.Low) .^ 2;
             param = sqrt(252 / (bw * 4 * log(2)));
             fun = @(x) param * sqrt(sum(x));
-        case 'RS'          
-            log_ho = log(data.High ./ data.Open);
-            log_lo = log(data.Low ./ data.Open);
-            log_co = log(data.Close ./ data.Open);
-            res = (log_ho .* (log_ho - log_co)) + (log_lo .* (log_lo - log_co));
+        case 'RS'
+            co = log(data.Close ./ data.Open);
+            ho = log(data.High ./ data.Open);
+            lo = log(data.Low ./ data.Open);
+            res = (ho .* (ho - co)) + (lo .* (lo - co));
             param = sqrt(252 / bw);
-            fun = @(x) param * sqrt(sum(x)); 
+            fun = @(x) param * sqrt(sum(x));
         case 'YZ'
-            log_ho = log(data.High ./ data.Open);
-            log_lo = log(data.Low ./ data.Open);
-            log_co = log(data.Close ./ data.Open);
-            res_oc = log(data.Open ./ [NaN; data.Close(1:end-1)]) .^ 2;
-            res_cc = data.Return .^ 2;
-            res_rs = (log_ho .* (log_ho - log_co)) + (log_lo .* (log_lo - log_co));
-            res = [res_oc res_cc res_rs];
+            co = log(data.Close ./ data.Open);
+            ho = log(data.High ./ data.Open);
+            lo = log(data.Low ./ data.Open);
+            res = [(log(data.Open ./ [NaN; data.Close(1:end-1)]) .^ 2) (data.Return .^ 2) ((ho .* (ho - co)) + (lo .* (lo - co)))];
             k = 0.34 / (1.34 + ((bw + 1) / (bw - 1)));
             param1 = sqrt(252 / (bw - 1));
             param2 = [1 k (1 - k)];
