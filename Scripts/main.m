@@ -1,1 +1,0 @@
-analyse_volatility('YAHOO/JPM',2013,2013,'YZ');
