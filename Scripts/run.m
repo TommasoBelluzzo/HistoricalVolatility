@@ -1,7 +1,6 @@
 warning off all;
 
 close all;
-
 clearvars;
 clc;
 
