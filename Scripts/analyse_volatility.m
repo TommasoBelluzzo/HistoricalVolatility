@@ -62,7 +62,7 @@ end
 
 function analyse_volatility_internal(tkr,year_beg,year_end,est,bws,bws_len,qnts)
 
-	tkr_spl = strsplit(tkr,'/');   
+    tkr_spl = strsplit(tkr,'/');   
     tkr_cod = tkr_spl{2};
 
     date_beg = datestr(datenum(year_beg,1,1),'yyyy-mm-dd');
@@ -83,17 +83,17 @@ function analyse_volatility_internal(tkr,year_beg,year_end,est,bws,bws_len,qnts)
     pd.Obs = t;
     pd.QntHigh = qnts(2);
     pd.QntLow = qnts(1);
-	pd.PrcHigh = sprintf('%.0f Percentile',(pd.QntHigh * 100));
-	pd.PrcLow = sprintf('%.0f Percentile',(pd.QntLow * 100));
+    pd.PrcHigh = sprintf('%.0f Percentile',(pd.QntHigh * 100));
+    pd.PrcLow = sprintf('%.0f Percentile',(pd.QntLow * 100));
     pd.Vols = NaN(pd.Obs,bws_len);
-	pd.VolsEnd = zeros(bws_len,1);  
-	pd.VolsHigh = zeros(bws_len,1);
-	pd.VolsLow = zeros(bws_len,1);
-	pd.VolsMax = zeros(bws_len,1);
-	pd.VolsMed = zeros(bws_len,1);
-	pd.VolsMin = zeros(bws_len,1);    
-	pd.YBeg = year_beg;
-	pd.YEnd = year_end;
+    pd.VolsEnd = zeros(bws_len,1);  
+    pd.VolsHigh = zeros(bws_len,1);
+    pd.VolsLow = zeros(bws_len,1);
+    pd.VolsMax = zeros(bws_len,1);
+    pd.VolsMed = zeros(bws_len,1);
+    pd.VolsMin = zeros(bws_len,1);    
+    pd.YBeg = year_beg;
+    pd.YEnd = year_end;
 
     for i = 1:bws_len
         vol = estimate_volatility(data,est,bws(i),false);
@@ -113,7 +113,7 @@ function analyse_volatility_internal(tkr,year_beg,year_end,est,bws,bws_len,qnts)
         end   
     end
     
-	pd.AxisMax = ceil(max(pd.VolsMax) * 100) / 100;
+    pd.AxisMax = ceil(max(pd.VolsMax) * 100) / 100;
     pd.AxisMin = floor(min(pd.VolsMin) * 100) / 100;
     pd.AxisTck = pd.AxisMin:0.01:pd.AxisMax;
     pd.AxisLbl = sprintfc('%.0f%%', vertcat(pd.AxisTck .* 100));
