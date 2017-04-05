@@ -15,7 +15,7 @@
 % bws      = A vector representing the bandwidths (dimensions) of each rolling window (optional, default=[30 60 90 120]).
 % qnts     = A vector containing the upper and lower quantiles (optional, default=[0.25 0.75]).
 %
-% [NOTE]
+% [NOTES]
 % This function produces no outputs, its purpose is to show analysis results.
 
 function analyse_volatility(varargin)
