@@ -14,7 +14,7 @@
 %            Otherwise, a column vector of t-by-6 tables (as described above) is returned.
 %
 % [NOTES]
-% The 'key' parameter passed to the Quandl.auth() call must be replaced with a valid authentication key.
+% The 'key' string passed to the Quandl.auth() call must be replaced with a valid authentication key.
 
 function data = fetch_data(varargin)
 
