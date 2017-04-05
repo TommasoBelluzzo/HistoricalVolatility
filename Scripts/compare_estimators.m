@@ -4,7 +4,7 @@
 % year_end = An integer representing the end year.
 % bw       = A scalar representing the bandwidth (dimension) of each rolling window (optional, default=30).
 %
-% [NOTE]
+% [NOTES]
 % This function produces no outputs, its purpose is to show analysis results.
 
 function compare_estimators(varargin)
