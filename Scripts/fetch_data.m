@@ -13,7 +13,7 @@
 %             - Return (the log returns)
 %            Otherwise, a column vector of t-by-6 tables (as described above) is returned.
 %
-% [NOTE]
+% [NOTES]
 % The 'key' parameter passed to the Quandl.auth() call must be replaced with a valid authentication key.
 
 function data = fetch_data(varargin)
