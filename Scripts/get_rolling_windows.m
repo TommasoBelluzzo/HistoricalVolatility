@@ -5,7 +5,7 @@
 % [OUTPUT]
 % win  = A column vector containing the rolling windows.
 %
-% [NOTE]
+% [NOTES]
 % If the number of observations is less than or equal to the specified bandwidth, a single rolling window containing all the observations is returned.
 
 function win = get_rolling_windows(varargin)
