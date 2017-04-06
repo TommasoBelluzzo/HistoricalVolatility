@@ -188,7 +188,7 @@ function plot_curves(pd)
     hold on;
         plot(1,pd.VolEnd,'-m','Marker','*','MarkerEdgeColor','k');
     hold off;
-	set(sub_2,'XTick',[],'XTickLabel',[],'YAxisLocation','right');
+    set(sub_2,'XTick',[],'XTickLabel',[],'YAxisLocation','right');
     set(findobj(fig,'type','line','Tag','Median'),'Color','g');
     set(findobj(fig,'-regexp','Tag','\w*Whisker'),'LineStyle','-');
 
