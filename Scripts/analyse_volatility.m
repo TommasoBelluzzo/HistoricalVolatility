@@ -151,7 +151,7 @@ function plot_cones(pd)
     set(findobj(fig,'type','line','Tag','Median'),'Color','g');
     set(findobj(fig,'-regexp','Tag','\w*Whisker'),'LineStyle','-');
     
-    y_lbls = sprintfc('%.0f%%', vertcat(get(sub_1,'YTick') .* 100));
+    y_lbls = sprintfc('%.0f%%',vertcat(get(sub_1,'YTick') .* 100));
     y_tcks = str2double(get(sub_1,'YTickLabel'));
     set([sub_1 sub_2],'YLim',[pd.AxisMin pd.AxisMax],'YTick',y_tcks,'YTickLabel',y_lbls);
 
@@ -192,7 +192,7 @@ function plot_curves(pd)
     set(findobj(fig,'type','line','Tag','Median'),'Color','g');
     set(findobj(fig,'-regexp','Tag','\w*Whisker'),'LineStyle','-');
 
-    y_lbls = sprintfc('%.0f%%', vertcat(get(sub_1,'YTick') .* 100));
+    y_lbls = sprintfc('%.0f%%',vertcat(get(sub_1,'YTick') .* 100));
     y_tcks = str2double(get(sub_1,'YTickLabel'));
     set([sub_1 sub_2],'YLim',[pd.AxisMin pd.AxisMax],'YTick',y_tcks,'YTickLabel',y_lbls);
     
@@ -216,7 +216,7 @@ function plot_distribution(pd)
         plot([pd.VolEnd pd.VolEnd],get(gca,'YLim'),'r');
     hold off;
 
-    x_lbls = sprintfc('%.0f%%', vertcat(get(gca,'XTick') .* 100));   
+    x_lbls = sprintfc('%.0f%%',vertcat(get(gca,'XTick') .* 100));   
     set(gca,'XTickLabel',x_lbls);
 
     suptitle(tit);
