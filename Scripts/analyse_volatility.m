@@ -115,13 +115,11 @@ function analyse_volatility_internal(tkr,year_beg,year_end,est,bws,bws_len,qnts)
     
     pd.AxisMax = ceil(max(pd.VolsMax) * 100) / 100;
     pd.AxisMin = floor(min(pd.VolsMin) * 100) / 100;
-    pd.AxisTck = pd.AxisMin:0.01:pd.AxisMax;
-    pd.AxisLbl = sprintfc('%.0f%%', vertcat(pd.AxisTck .* 100));
 
     if (year_beg == year_end)
-        pd.Title = [tkr_cod ' ' est ' ' num2str(year_beg)];
+        pd.Title = [tkr_cod ' ' num2str(year_beg) ' | ' est];
     else
-        pd.Title = [tkr_cod ' ' est ' ' num2str(year_beg) '-' num2str(year_end)];
+        pd.Title = [tkr_cod ' ' num2str(year_beg) '-' num2str(year_end) ' | ' est];
     end
 
     plot_cones(pd);
@@ -143,7 +141,7 @@ function plot_cones(pd)
     xlabel(sub_1,'Bandwidth');
     ylabel(sub_1,'Volatility');
     set(sub_1,'XLim',[min(pd.Bws) max(pd.Bws)],'XTick',pd.Bws,'XTickLabel',pd.Bws);
-    
+
     sub_2 = subplot(1,3,3);
     boxplot(sub_2,pd.Vols,pd.Bws,'Notch','on','Symbol','k.');
     hold on;
@@ -152,8 +150,10 @@ function plot_cones(pd)
     set(sub_2,'YAxisLocation','right');
     set(findobj(fig,'type','line','Tag','Median'),'Color','g');
     set(findobj(fig,'-regexp','Tag','\w*Whisker'),'LineStyle','-');
-
-    set([sub_1 sub_2],'YLim',[pd.AxisMin pd.AxisMax],'YTick',pd.AxisTck,'YTickLabel',pd.AxisLbl);
+    
+	y_lbls = sprintfc('%.0f%%', vertcat(get(sub_1,'YTick') .* 100));
+    y_tcks = str2double(get(sub_1,'YTickLabel'));
+    set([sub_1 sub_2],'YLim',[pd.AxisMin pd.AxisMax],'YTick',y_tcks,'YTickLabel',y_lbls);
 
     suptitle(tit);
     movegui(fig,'center');
@@ -163,40 +163,25 @@ end
 function plot_curves(pd)
 
     tit = [pd.Title ' | Volatility Curves'];
-    t = pd.Obs;
     
     vol_win = get_rolling_windows(pd.Vol,pd.Bw);
     vol_dif = NaN(length(pd.Vol) - size(vol_win,1),1);
-    
     vol_max = [vol_dif; cellfun(@(x)nanmax(x),vol_win)];
     vol_hi = [vol_dif; cellfun(@(x)quantile(x,pd.QntHigh),vol_win)];
     vol_med = [vol_dif; cellfun(@(x)nanmedian(x),vol_win)];
     vol_lo = [vol_dif; cellfun(@(x)quantile(x,pd.QntLow),vol_win)];
     vol_min = [vol_dif; cellfun(@(x)nanmin(x),vol_win)];
 
-    x_lim = (pd.YEnd - pd.YBeg + 1) * 12;
-    x_lbl = cell(x_lim,1);
-    x_tck = round(linspace(1,t,x_lim));
-
-    for i = 1:x_lim
-        x_lbl(i) = cellstr(datestr(pd.Dates(x_tck(i)),'mm/yy'));
-    end
-    
-    dates = zeros(t,1);
-    
-    for i = 1:t
-        dates(i) = i;
-    end
-
     fig = figure();
     set(fig,'Name',tit,'Units','normalized','Position',[100 100 0.6 0.6]);
 
     sub_1 = subplot(1,5,1:4);
-    plot(sub_1,dates,vol_max,':r',dates,vol_hi,':b',dates,vol_med,':g',dates,vol_lo,':c',dates,vol_min,':k',dates,pd.Vol,'-m');
+    plot(sub_1,pd.Dates,vol_max,':r',pd.Dates,vol_hi,':b',pd.Dates,vol_med,':g',pd.Dates,vol_lo,':c',pd.Dates,vol_min,':k',pd.Dates,pd.Vol,'-m');
+    datetick('x','mm/yy');
     legend('Maximum',pd.PrcHigh,'Median',pd.PrcLow,'Minimum','Realized','Location','best');
     xlabel(sub_1,'Time');
     ylabel(sub_1,'Volatility');
-    set(sub_1,'XLim',[0 t],'XMinorTick','on','XTick',x_tck,'XTickLabel',x_lbl,'XTickLabelRotation',90);
+    set(sub_1,'XMinorTick','on','XTickLabelRotation',90);
 
     sub_2 = subplot(1,5,5);
     boxplot(sub_2,pd.Vol,pd.Bw,'Notch','on','Symbol','k.');
@@ -207,7 +192,9 @@ function plot_curves(pd)
     set(findobj(fig,'type','line','Tag','Median'),'Color','g');
     set(findobj(fig,'-regexp','Tag','\w*Whisker'),'LineStyle','-');
 
-    set([sub_1 sub_2],'YLim',[pd.AxisMin pd.AxisMax],'YTick',pd.AxisTck,'YTickLabel',pd.AxisLbl);
+	y_lbls = sprintfc('%.0f%%', vertcat(get(sub_1,'YTick') .* 100));
+    y_tcks = str2double(get(sub_1,'YTickLabel'));
+    set([sub_1 sub_2],'YLim',[pd.AxisMin pd.AxisMax],'YTick',y_tcks,'YTickLabel',y_lbls);
     
     suptitle(tit);
     movegui(fig,'center');
@@ -229,7 +216,8 @@ function plot_distribution(pd)
         plot([pd.VolEnd pd.VolEnd],get(gca,'YLim'),'r');
     hold off;
 
-    set(gca,'XLim',[pd.AxisMin pd.AxisMax],'XTick',pd.AxisTck,'XTickLabel',pd.AxisLbl);
+	x_lbls = sprintfc('%.0f%%', vertcat(get(gca,'XTick') .* 100));   
+    set(gca,'XTickLabel',x_lbls);
 
     suptitle(tit);
     movegui(fig,'center');
