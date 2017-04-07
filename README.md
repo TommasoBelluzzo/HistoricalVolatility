@@ -1,7 +1,5 @@
 # Historical Volatility
 
-Team project for a university course: designing highly efficient web services.
-
 I created this script in 2013 for a university team project.
 It can calculate and analyse the following historical volatility estimators:
 * the traditional Close-to-Close estimator and a variant that uses demeaned returns;
