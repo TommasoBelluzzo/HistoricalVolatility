@@ -1,27 +1,27 @@
 % [INPUT]
-% data = A t-by-n matrix containing the time series.
-% bw   = A scalar representing the bandwidth (dimension) of each rolling window.
+% data = A numeric t-by-n matrix containing the time series.
+% bw   = An integer representing the bandwidth (dimension) of each rolling window.
 %
 % [OUTPUT]
-% win  = A column vector containing the rolling windows.
+% win  = A vector of numeric bw-by-n matrices representing the rolling windows.
 %
 % [NOTES]
 % If the number of observations is less than or equal to the specified bandwidth, a single rolling window containing all the observations is returned.
 
 function win = get_rolling_windows(varargin)
 
-    persistent p;
+    persistent ip;
 
-    if (isempty(p))
-        p = inputParser();
-        p.addRequired('data',@(x)validateattributes(x,{'numeric'},{'2d','nonempty'}));
-        p.addRequired('bw',@(x)validateattributes(x,{'numeric'},{'scalar','integer','real','finite','>=',2}));
+    if (isempty(ip))
+        ip = inputParser();
+        ip.addRequired('data',@(x)validateattributes(x,{'numeric'},{'2d','nonempty'}));
+        ip.addRequired('bw',@(x)validateattributes(x,{'numeric'},{'scalar','integer','real','finite','>=',2}));
     end
 
-    p.parse(varargin{:});
-    res = p.Results;
+    ip.parse(varargin{:});
+    ip_res = ip.Results;
     
-    win = get_rolling_windows_internal(res.data,res.bw);
+    win = get_rolling_windows_internal(ip_res.data,ip_res.bw);
 
 end
 

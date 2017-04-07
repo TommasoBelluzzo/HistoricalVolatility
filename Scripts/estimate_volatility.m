@@ -1,5 +1,5 @@
 % [INPUT]
-% data = A t-by-6 table containing the following time series:
+% data = A numeric t-by-6 table containing the following time series:
 %         - Date (the dates of the observations)
 %         - Open (the opening prices)
 %         - High (the highest prices)
@@ -17,10 +17,10 @@
 %         - RS (the estimator proposed by Rogers & Satchell, 1991)
 %         - YZ (the estimator proposed by Yang & Zhang, 2000)
 % bw   = An integer representing he bandwidth (dimension) of each rolling window.
-% cln  = A boolean that indicates whether to remove the NaN values at the beginning the result (optional, default=true).
+% cln  = A boolean that indicates whether to remove the NaN values at the beginning of the result (optional, default=true).
 %
 % [OUTPUT]
-% vol  = A column vector containing the estimated historical volatility.
+% vol  = A vector of floats containing the estimated historical volatility.
 
 function vol = estimate_volatility(varargin)
 

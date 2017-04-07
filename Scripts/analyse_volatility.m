@@ -12,35 +12,35 @@
 %             - P (the estimator proposed by Parkinson, 1980)
 %             - RS (the estimator proposed by Rogers & Satchell, 1991)
 %             - YZ (the estimator proposed by Yang & Zhang, 2000)
-% bws      = A vector representing the bandwidths (dimensions) of each rolling window (optional, default=[30 60 90 120]).
-% qnts     = A vector containing the upper and lower quantiles (optional, default=[0.25 0.75]).
+% bws      = A vector of integers representing the bandwidths (dimensions) of each rolling window (optional, default=[30 60 90 120]).
+% qnts     = A vector of two floats containing the lower quantile and the upper quantile (optional, default=[0.25 0.75]).
 %
 % [NOTES]
 % This function produces no outputs, its purpose is to show analysis results.
 
 function analyse_volatility(varargin)
 
-    persistent p;
+    persistent ip;
 
-    if (isempty(p))
-        p = inputParser();
-        p.addRequired('tkr',@(x)validateattributes(x,{'char'},{'nonempty','size',[1,NaN]}));
-        p.addRequired('year_beg',@(x)validateattributes(x,{'numeric'},{'scalar','integer','real','finite','>=',1950}));
-        p.addRequired('year_end',@(x)validateattributes(x,{'numeric'},{'scalar','integer','real','finite','>=',1950}));
-        p.addRequired('est',@(x)any(validatestring(x,{'CC','CCD','GK','GKYZ','HT','M','P','RS','YZ'})));
-        p.addOptional('bws',[30 60 90 120],@(x)validateattributes(x,{'numeric'},{'vector','integer','real','finite','>=',2,'increasing'}));
-        p.addOptional('qnts',[0.25 0.75],@(x)validateattributes(x,{'numeric'},{'vector','numel',2,'integer','real','finite','increasing'}));
+    if (isempty(ip))
+        ip = inputParser();
+        ip.addRequired('tkr',@(x)validateattributes(x,{'char'},{'nonempty','size',[1,NaN]}));
+        ip.addRequired('year_beg',@(x)validateattributes(x,{'numeric'},{'scalar','integer','real','finite','>=',1970}));
+        ip.addRequired('year_end',@(x)validateattributes(x,{'numeric'},{'scalar','integer','real','finite','>=',1970}));
+        ip.addRequired('est',@(x)any(validatestring(x,{'CC','CCD','GK','GKYZ','HT','M','P','RS','YZ'})));
+        ip.addOptional('bws',[30 60 90 120],@(x)validateattributes(x,{'numeric'},{'vector','integer','real','finite','>=',2,'increasing'}));
+        ip.addOptional('qnts',[0.25 0.75],@(x)validateattributes(x,{'numeric'},{'vector','numel',2,'integer','real','finite','increasing','>',0,'<',1}));
     end
 
-    p.parse(varargin{:});
+    ip.parse(varargin{:});
     
-    res = p.Results;
-    tkr = res.tkr;
-    year_beg = res.year_beg;
-    year_end = res.year_end;
-    est = res.est;
-    bws = res.bws;
-    qnts = res.qnts;
+    ip_res = ip.Results;
+    tkr = ip_res.tkr;
+    year_beg = ip_res.year_beg;
+    year_end = ip_res.year_end;
+    est = ip_res.est;
+    bws = ip_res.bws;
+    qnts = ip_res.qnts;
 
     if (year_beg > year_end)
         error('The start year must be less than or equal to the end year.');
@@ -137,21 +137,21 @@ function plot_cones(pd)
     
     sub_1 = subplot(1,3,1:2);
     plot(sub_1,pd.Bws,pd.VolsMax,'-r',pd.Bws,pd.VolsHigh,'-b',pd.Bws,pd.VolsMed,'-g',pd.Bws,pd.VolsLow,'-c',pd.Bws,pd.VolsMin,'-k',pd.Bws,pd.VolsEnd,'--m');
-    legend('Maximum',pd.PrcHigh,'Median',pd.PrcLow,'Minimum','Realized','Location','best');
     xlabel(sub_1,'Bandwidth');
     ylabel(sub_1,'Volatility');
     set(sub_1,'XLim',[min(pd.Bws) max(pd.Bws)],'XTick',pd.Bws,'XTickLabel',pd.Bws);
-
+    legend(sub_1,'Maximum',pd.PrcHigh,'Median',pd.PrcLow,'Minimum','Realized','Location','best');
+    
     sub_2 = subplot(1,3,3);
     boxplot(sub_2,pd.Vols,pd.Bws,'Notch','on','Symbol','k.');
     hold on;
-        plot(1:pd.BwsLen,pd.VolsEnd,'-m','Marker','*','MarkerEdgeColor','k');
+        plot(sub_2,1:pd.BwsLen,pd.VolsEnd,'-m','Marker','*','MarkerEdgeColor','k');
     hold off;
     set(sub_2,'YAxisLocation','right');
     set(findobj(fig,'type','line','Tag','Median'),'Color','g');
     set(findobj(fig,'-regexp','Tag','\w*Whisker'),'LineStyle','-');
-    
-    y_lbls = sprintfc('%.0f%%',vertcat(get(sub_1,'YTick') .* 100));
+
+    y_lbls = arrayfun(@(x) sprintf('%.0f%%',x),(get(sub_2,'YTick') .* 100),'UniformOutput',false);
     y_tcks = str2double(get(sub_1,'YTickLabel'));
     set([sub_1 sub_2],'YLim',[pd.AxisMin pd.AxisMax],'YTick',y_tcks,'YTickLabel',y_lbls);
 
@@ -177,22 +177,22 @@ function plot_curves(pd)
 
     sub_1 = subplot(1,5,1:4);
     plot(sub_1,pd.Dates,vol_max,':r',pd.Dates,vol_hi,':b',pd.Dates,vol_med,':g',pd.Dates,vol_lo,':c',pd.Dates,vol_min,':k',pd.Dates,pd.Vol,'-m');
-    datetick('x','mm/yy');
-    legend('Maximum',pd.PrcHigh,'Median',pd.PrcLow,'Minimum','Realized','Location','best');
+    datetick(sub_1,'x','mm/yy');
     xlabel(sub_1,'Time');
     ylabel(sub_1,'Volatility');
     set(sub_1,'XMinorTick','on','XTickLabelRotation',90);
+    legend(sub_1,'Maximum',pd.PrcHigh,'Median',pd.PrcLow,'Minimum','Realized','Location','best');
 
     sub_2 = subplot(1,5,5);
     boxplot(sub_2,pd.Vol,pd.Bw,'Notch','on','Symbol','k.');
     hold on;
-        plot(1,pd.VolEnd,'-m','Marker','*','MarkerEdgeColor','k');
+        plot(sub_2,1,pd.VolEnd,'-m','Marker','*','MarkerEdgeColor','k');
     hold off;
     set(sub_2,'XTick',[],'XTickLabel',[],'YAxisLocation','right');
     set(findobj(fig,'type','line','Tag','Median'),'Color','g');
     set(findobj(fig,'-regexp','Tag','\w*Whisker'),'LineStyle','-');
 
-    y_lbls = sprintfc('%.0f%%',vertcat(get(sub_1,'YTick') .* 100));
+    y_lbls = arrayfun(@(x) sprintf('%.0f%%',x),(get(sub_2,'YTick') .* 100),'UniformOutput',false);
     y_tcks = str2double(get(sub_1,'YTickLabel'));
     set([sub_1 sub_2],'YLim',[pd.AxisMin pd.AxisMax],'YTick',y_tcks,'YTickLabel',y_lbls);
     
@@ -209,15 +209,16 @@ function plot_distribution(pd)
     set(fig,'Name',tit,'Units','normalized','Position',[100 100 0.6 0.6]);
 
     hist = histogram(pd.Vol,100,'FaceAlpha',0.25,'Normalization','pdf');
+    ax = gca;
     hold on;
         edges = get(hist,'BinEdges');
         norm = normpdf(edges,nanmean(pd.Vol),nanstd(pd.Vol));
-        plot(edges,norm,'b');
-        plot([pd.VolEnd pd.VolEnd],get(gca,'YLim'),'r');
+        plot(ax,edges,norm,'b');
+        plot(ax,[pd.VolEnd pd.VolEnd],get(gca,'YLim'),'r');
     hold off;
 
-    x_lbls = sprintfc('%.0f%%',vertcat(get(gca,'XTick') .* 100));   
-    set(gca,'XTickLabel',x_lbls);
+    x_lbls = arrayfun(@(x) sprintf('%.0f%%',x),(get(ax,'XTick') .* 100),'UniformOutput',false);
+    set(ax,'XTickLabel',x_lbls);
 
     suptitle(tit);
     movegui(fig,'center');

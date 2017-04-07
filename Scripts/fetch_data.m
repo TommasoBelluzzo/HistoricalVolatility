@@ -1,37 +1,39 @@
 % [INPUT]
-% tkrs     = A string or a vector of strings representing the ticker symbols.
+% tkrs     = A variable representing the ticker symbol(s) with two possible value types:
+%             - An string for a single ticker symbol.
+%             - A vector of strings for multiple ticker symbols.
 % date_beg = A string representing the start date in the format "yyyy-mm-dd".
 % date_end = A string representing the end date in the format "yyyy-mm-dd".
 %
 % [OUTPUT]
-% data     = If a single ticker symbol is provided, the function returns a t-by-6 table with the following time series:
+% data     = If a single ticker symbol is provided, the function returns a numeric t-by-6 table with the following time series:
 %             - Date (the dates of the observations)
 %             - Open (the opening prices)
 %             - High (the highest prices)
 %             - Low (the lowest prices)
 %             - Close (the closing prices)
 %             - Return (the log returns)
-%            Otherwise, a column vector of t-by-6 tables (as described above) is returned.
+%            Otherwise, a vector of numeric t-by-6 tables (as described above) is returned.
 %
 % [NOTES]
 % The 'key' string passed to the Quandl.auth() call must be replaced with a valid authentication key.
 
 function data = fetch_data(varargin)
 
-    persistent p;
+    persistent ip;
 
-    if (isempty(p))
-        p = inputParser();
-        p.addRequired('tkrs',@(x)validateattributes(x,{'cell','char'},{'vector','nonempty'}));
-        p.addRequired('date_beg',@(x)validateattributes(x,{'char'},{'nonempty','size',[1,NaN]}));
-        p.addRequired('date_end',@(x)validateattributes(x,{'char'},{'nonempty','size',[1,NaN]}));        
+    if (isempty(ip))
+        ip = inputParser();
+        ip.addRequired('tkrs',@(x)validateattributes(x,{'cell','char'},{'vector','nonempty'}));
+        ip.addRequired('date_beg',@(x)validateattributes(x,{'char'},{'nonempty','size',[1,NaN]}));
+        ip.addRequired('date_end',@(x)validateattributes(x,{'char'},{'nonempty','size',[1,NaN]}));        
     end
 
-    p.parse(varargin{:});
-    res = p.Results;
-    tkrs = res.tkrs;
-    date_beg = res.date_beg;
-    date_end = res.date_end;
+    ip.parse(varargin{:});
+    
+    ip_res = ip.Results;
+    date_beg = ip_res.date_beg;
+    date_end = ip_res.date_end;
 
     try
         num_beg = datenum(date_beg,'yyyy-mm-dd');
@@ -59,7 +61,7 @@ function data = fetch_data(varargin)
         error('The start date must be anterior to the end date by at least 30 days.');
     end
 
-    data = fetch_data_internal(tkrs,date_beg,date_end);
+    data = fetch_data_internal(ip_res.tkrs,date_beg,date_end);
 
 end
 
