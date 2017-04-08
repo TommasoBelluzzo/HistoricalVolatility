@@ -61,7 +61,7 @@ function data = fetch_data(varargin)
         error('The start date must be anterior to the end date by at least 30 days.');
     end
 
-    data = cache_result(@fetch_data_internal,ip_res.tkrs,date_beg,date_end);
+    data = cache_result(ip_res.tkrs,date_beg,date_end);
 
 end
 
@@ -79,7 +79,7 @@ function data = fetch_data_internal(tkrs,date_beg,date_end)
     bar = waitbar(0,'Fetching data from Quandl...');
     
     try
-        Quandl.auth('ZDnsxfZ8idd7fzKbQdfy');
+        Quandl.auth('key');
 
         for i = 1:tkrs_len
             tkr = tkrs{i};
@@ -142,15 +142,16 @@ function data = fetch_data_internal(tkrs,date_beg,date_end)
 
 end
 
-function varargout = cache_result(fun,varargin)
+function varargout = cache_result(varargin)
 
     persistent cache;
 
+    args = varargin;
+    fun = @fetch_data_internal;
+	now = cputime;
+    
     try
-        now = cputime;
-        args = varargin;
-
-        key = [args {fun,nargout}];
+        key = [args {@fetch_data_internal,nargout}];
         key_inf = whos('key');
         key_sid = sprintf('s%.0f',key_inf.bytes);
 
