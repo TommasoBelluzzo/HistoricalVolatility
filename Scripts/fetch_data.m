@@ -61,7 +61,7 @@ function data = fetch_data(varargin)
         error('The start date must be anterior to the end date by at least 30 days.');
     end
 
-    data = fetch_data_internal(ip_res.tkrs,date_beg,date_end);
+    data = cache_result(@fetch_data_internal,ip_res.tkrs,date_beg,date_end);
 
 end
 
@@ -79,7 +79,7 @@ function data = fetch_data_internal(tkrs,date_beg,date_end)
     bar = waitbar(0,'Fetching data from Quandl...');
     
     try
-        Quandl.auth('key');
+        Quandl.auth('ZDnsxfZ8idd7fzKbQdfy');
 
         for i = 1:tkrs_len
             tkr = tkrs{i};
@@ -137,6 +137,84 @@ function data = fetch_data_internal(tkrs,date_beg,date_end)
         end
     catch e
         close(bar);
+        rethrow(e);
+    end
+
+end
+
+function varargout = cache_result(fun,varargin)
+
+    persistent cache;
+
+    try
+        now = cputime;
+        args = varargin;
+
+        key = [args {fun,nargout}];
+        key_inf = whos('key');
+        key_sid = sprintf('s%.0f',key_inf.bytes);
+
+        try
+            pool = cache.(key_sid);
+
+            for i = 1:length(pool.Inps)
+                if (isequaln(key,pool.Inps{i}))
+                    varargout = pool.Outs{i};
+
+                    pool.Frqs(i) = pool.Frqs(i) + 1;
+                    pool.Lcnt = pool.Lcnt + 1;
+                    pool.Luse(i) = now;
+
+                    if (pool.Lcnt > cache.Cfg.ResFre)
+                        [pool.Frqs,inds] = sort(pool.Frqs,'descend');
+
+                        pool.Inps = pool.Inps(inds);
+                        pool.Lcnt = 0;
+                        pool.Luse = pool.Luse(inds);
+                        pool.Outs = pool.Outs(inds);
+                    end
+
+                    cache.(key_sid) = pool;
+
+                    return;
+                end
+            end
+        catch
+            pool = struct('Frqs',{[]},'Inps',{{}},'Lcnt',{0},'Luse',{[]},'Outs',{{}});
+        end
+
+        if (~exist('varargout','var'))
+            if (~isfield(cache,'Cfg'))
+                cache.Cfg = struct();
+                cache.Cfg.GrpSiz = 100;
+                cache.Cfg.MaxSizKey = 100000000;
+                cache.Cfg.MaxSizRes = 100000000;
+                cache.Cfg.ResFre = 10;
+            end
+
+            [varargout{1:nargout}] = fun(varargin{:});
+            var_inf = whos('varargout');
+
+            if ((var_inf.bytes <= cache.Cfg.MaxSizRes) && (key_inf.bytes <= cache.Cfg.MaxSizKey))
+                pool.Frqs(end+1) = 1;
+                pool.Inps{end+1} = key;
+                pool.Lcnt = 0;
+                pool.Luse(end+1) = now;
+                pool.Outs{end+1} = varargout;
+
+                while (length(pool.Inps) > cache.Cfg.GrpSiz)
+                    [~,idx] = min(pool.Luse);
+
+                    pool.Luse(idx) = [];
+                    pool.Frqs(idx) = [];
+                    pool.Inps(idx) = [];
+                    pool.Outs(idx) = [];
+                end
+
+                cache.(key_sid) = pool;
+            end
+        end
+    catch e
         rethrow(e);
     end
 
