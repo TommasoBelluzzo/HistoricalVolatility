@@ -40,10 +40,10 @@ function data = fetch_data(varargin)
         check = datestr(num_beg,'yyyy-mm-dd');
 
         if (~isequal(check,date_beg))
-            throw(MException('',''));
+            error('Invalid end date specified.');
         end
-    catch
-        error('Invalid start date specified.');
+    catch e
+        rethrow(e);
     end
 
     try
@@ -51,10 +51,10 @@ function data = fetch_data(varargin)
         check = datestr(num_end,'yyyy-mm-dd');
 
         if (~isequal(check,date_end))
-            throw(MException('',''));
+            error('Invalid end date specified.');
         end
-    catch
-        error('Invalid end date specified.');
+    catch e
+        rethrow(e);
     end
 
     if ((num_end - num_beg) < 30)
