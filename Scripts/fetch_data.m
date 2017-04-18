@@ -148,75 +148,71 @@ function varargout = cache_result(varargin)
 
     args = varargin;
     fun = @fetch_data_internal;
-	now = cputime;
+    now = cputime;
     
+    key = [args {@fetch_data_internal,nargout}];
+    key_inf = whos('key');
+    key_sid = sprintf('s%.0f',key_inf.bytes);
+
     try
-        key = [args {@fetch_data_internal,nargout}];
-        key_inf = whos('key');
-        key_sid = sprintf('s%.0f',key_inf.bytes);
+        pool = cache.(key_sid);
 
-        try
-            pool = cache.(key_sid);
+        for i = 1:length(pool.Inps)
+            if (isequaln(key,pool.Inps{i}))
+                varargout = pool.Outs{i};
 
-            for i = 1:length(pool.Inps)
-                if (isequaln(key,pool.Inps{i}))
-                    varargout = pool.Outs{i};
+                pool.Frqs(i) = pool.Frqs(i) + 1;
+                pool.Lcnt = pool.Lcnt + 1;
+                pool.Luse(i) = now;
 
-                    pool.Frqs(i) = pool.Frqs(i) + 1;
-                    pool.Lcnt = pool.Lcnt + 1;
-                    pool.Luse(i) = now;
+                if (pool.Lcnt > cache.Cfg.ResFre)
+                    [pool.Frqs,inds] = sort(pool.Frqs,'descend');
 
-                    if (pool.Lcnt > cache.Cfg.ResFre)
-                        [pool.Frqs,inds] = sort(pool.Frqs,'descend');
-
-                        pool.Inps = pool.Inps(inds);
-                        pool.Lcnt = 0;
-                        pool.Luse = pool.Luse(inds);
-                        pool.Outs = pool.Outs(inds);
-                    end
-
-                    cache.(key_sid) = pool;
-
-                    return;
-                end
-            end
-        catch
-            pool = struct('Frqs',{[]},'Inps',{{}},'Lcnt',{0},'Luse',{[]},'Outs',{{}});
-        end
-
-        if (~exist('varargout','var'))
-            if (~isfield(cache,'Cfg'))
-                cache.Cfg = struct();
-                cache.Cfg.GrpSiz = 100;
-                cache.Cfg.MaxSizKey = 100000000;
-                cache.Cfg.MaxSizRes = 100000000;
-                cache.Cfg.ResFre = 10;
-            end
-
-            [varargout{1:nargout}] = fun(varargin{:});
-            var_inf = whos('varargout');
-
-            if ((var_inf.bytes <= cache.Cfg.MaxSizRes) && (key_inf.bytes <= cache.Cfg.MaxSizKey))
-                pool.Frqs(end+1) = 1;
-                pool.Inps{end+1} = key;
-                pool.Lcnt = 0;
-                pool.Luse(end+1) = now;
-                pool.Outs{end+1} = varargout;
-
-                while (length(pool.Inps) > cache.Cfg.GrpSiz)
-                    [~,idx] = min(pool.Luse);
-
-                    pool.Luse(idx) = [];
-                    pool.Frqs(idx) = [];
-                    pool.Inps(idx) = [];
-                    pool.Outs(idx) = [];
+                    pool.Inps = pool.Inps(inds);
+                    pool.Lcnt = 0;
+                    pool.Luse = pool.Luse(inds);
+                    pool.Outs = pool.Outs(inds);
                 end
 
                 cache.(key_sid) = pool;
+
+                return;
             end
         end
-    catch e
-        rethrow(e);
+    catch
+        pool = struct('Frqs',{[]},'Inps',{{}},'Lcnt',{0},'Luse',{[]},'Outs',{{}});
+    end
+
+    if (~exist('varargout','var'))
+        if (~isfield(cache,'Cfg'))
+            cache.Cfg = struct();
+            cache.Cfg.GrpSiz = 100;
+            cache.Cfg.MaxSizKey = 100000000;
+            cache.Cfg.MaxSizRes = 100000000;
+            cache.Cfg.ResFre = 10;
+        end
+
+        [varargout{1:nargout}] = fun(varargin{:});
+        var_inf = whos('varargout');
+
+        if ((var_inf.bytes <= cache.Cfg.MaxSizRes) && (key_inf.bytes <= cache.Cfg.MaxSizKey))
+            pool.Frqs(end+1) = 1;
+            pool.Inps{end+1} = key;
+            pool.Lcnt = 0;
+            pool.Luse(end+1) = now;
+            pool.Outs{end+1} = varargout;
+
+            while (length(pool.Inps) > cache.Cfg.GrpSiz)
+                [~,idx] = min(pool.Luse);
+
+                pool.Luse(idx) = [];
+                pool.Frqs(idx) = [];
+                pool.Inps(idx) = [];
+                pool.Outs(idx) = [];
+            end
+
+            cache.(key_sid) = pool;
+        end
     end
 
 end
