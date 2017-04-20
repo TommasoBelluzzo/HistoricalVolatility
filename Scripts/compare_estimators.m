@@ -261,7 +261,7 @@ function plot_regressions(pd)
         set(ann,'Parent',sub,'Position',[-0.1 0.7 0.1 0.1]);
         
         if (i == 1)
-            leg = legend(sub,[plo_1 area_1],'OLS Estimation','95% Confidence Bounds','Orientation','Horizontal','Location','South');
+            leg = legend(sub,[plo_1 area_1],'OLS Estimation','95% Confidence Bounds','Location','south','Orientation','horizontal');
         end
 
         if (i <= 4)
