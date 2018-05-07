@@ -62,9 +62,6 @@ end
 
 function analyse_volatility_internal(tkr,year_beg,year_end,est,bws,bws_len,qnts)
 
-    tkr_spl = strsplit(tkr,'/');   
-    tkr_cod = tkr_spl{2};
-
     date_beg = datestr(datenum(year_beg,1,1),'yyyy-mm-dd');
     date_end = datestr(datenum(year_end,12,31),'yyyy-mm-dd');
 
@@ -117,9 +114,9 @@ function analyse_volatility_internal(tkr,year_beg,year_end,est,bws,bws_len,qnts)
     pd.AxisMin = floor(min(pd.VolsMin) * 100) / 100;
 
     if (year_beg == year_end)
-        pd.Title = [tkr_cod ' ' num2str(year_beg) ' | ' est];
+        pd.Title = [tkr ' ' num2str(year_beg) ' | ' est];
     else
-        pd.Title = [tkr_cod ' ' num2str(year_beg) '-' num2str(year_end) ' | ' est];
+        pd.Title = [tkr ' ' num2str(year_beg) '-' num2str(year_end) ' | ' est];
     end
 
     plot_cones(pd);
