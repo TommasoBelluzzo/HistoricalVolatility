@@ -10,7 +10,7 @@
 %         - CC (the traditional Close-to-Close estimator)
 %         - CCD (a variant of the previous estimator that uses demeaned returns)
 %         - GK (the estimator proposed by Garman & Klass, 1980)
-%         - GKYZ (a extension of the previous estimator proposed by Yang & Zhang, 2000)
+%         - GKYZ (an extension of the previous estimator proposed by Yang & Zhang, 2000)
 %         - HT (the estimator proposed by Hodges & Tompkins, 2002)
 %         - M (the estimator proposed by Meilijson, 2009)
 %         - P (the estimator proposed by Parkinson, 1980)
@@ -113,11 +113,11 @@ function vol = estimate_volatility_internal(data,t,est,bw,cln)
             co = log(data.Close ./ data.Open);
             ho = log(data.High ./ data.Open);
             lo = log(data.Low ./ data.Open);
-            res = [(log(data.Open ./ [NaN; data.Close(1:end-1)]) .^ 2) (data.Return .^ 2) ((ho .* (ho - co)) + (lo .* (lo - co)))];
+            res = [(log(data.Open ./ [NaN; data.Close(1:end-1)]) .^ 2) (co .^ 2) ((ho .* (ho - co)) + (lo .* (lo - co)))];
             k = 0.34 / (1.34 + ((bw + 1) / (bw - 1)));
-            param1 = sqrt(252 / (bw - 1));
+            param1 = [(252 / (bw - 1)) (252 / (bw - 1)) (252 / bw)];
             param2 = [1 k (1 - k)];
-            fun = @(x) param1 * sqrt(sum(sum(x,1) .* param2));        
+            fun = @(x) sqrt(sum(sum(param1 .* param2 .* x,1)));
     end
 
     win = get_rolling_windows(res,bw);
