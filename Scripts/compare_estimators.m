@@ -35,9 +35,6 @@ end
 
 function compare_estimators_internal(tkr,year_beg,year_end,bw)
 
-    tkr_spl = strsplit(tkr,'/');   
-    tkr_cod = tkr_spl{2};
-
     date_beg = datestr(datenum(year_beg,1,1),'yyyy-mm-dd');
     date_end = datestr(datenum(year_end,12,31),'yyyy-mm-dd');
 
@@ -65,9 +62,9 @@ function compare_estimators_internal(tkr,year_beg,year_end,bw)
     pd.ResCln(any(isnan(pd.ResCln),2),:) = [];
 
     if (year_beg == year_end)
-        pd.Tit = [tkr_cod ' ' num2str(year_beg)];
+        pd.Tit = [tkr ' ' num2str(year_beg)];
     else
-        pd.Tit = [tkr_cod ' ' num2str(year_beg) '-' num2str(year_end)];
+        pd.Tit = [tkr ' ' num2str(year_beg) '-' num2str(year_end)];
     end
     
     plot_overview(pd);
@@ -214,8 +211,8 @@ function plot_regressions(pd)
     for i = i_lim
         mdl = fitlm(pd.ResCln(:,i),y,'linear','Intercept',true);
 
-        x = mdl.Variables{:,1}{:,:};
-        y = mdl.Variables{:,2}{:,:};
+        x = mdl.Variables{:,1};
+        y = mdl.Variables{:,2};
         [y_hat,y_ci] = predict(mdl,mdl.Variables);
         z1 = y_ci(:,2);
         z2 = y_ci(:,1);
@@ -275,7 +272,7 @@ function plot_regressions(pd)
     end
 
     set(subs,'XLim',[min(lims(:,1))-0.1 max(lims(:,2))+0.1],'YLim',[min(lims(:,3))-0.1 max(lims(:,4))+0.1]);
-    set(leg,'Units','normalized','Position',[0.4 0.38 0.2 0.2]);
+    set(leg,'Units','normalized','Position',[0.4 0.45 0.2 0.05]);
     
     suptitle(tit);
     movegui(fig,'center');
