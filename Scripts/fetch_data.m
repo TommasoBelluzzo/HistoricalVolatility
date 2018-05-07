@@ -34,7 +34,7 @@ function data = fetch_data(varargin)
     ip_res = ip.Results;
     date_beg = ip_res.date_beg;
     date_end = ip_res.date_end;
-
+    
     try
         num_beg = datenum(date_beg,'yyyy-mm-dd');
         check = datestr(num_beg,'yyyy-mm-dd');
@@ -72,62 +72,39 @@ function data = fetch_data_internal(tkrs,date_beg,date_end)
     end
      
     tkrs_len = length(tkrs);
-    
     data = cell(tkrs_len,1);
-    tkr_dbs = cell(tkrs_len,1);
     
-    bar = waitbar(0,'Fetching data from Quandl...');
+    date_orig = datenum('01-Jan-1970 00:00:00','dd-mmm-yyyy HH:MM:SS');
+    date_beg = (datenum(date_beg,'yyyy-mm-dd') - date_orig) * 86400;
+    date_end = (datenum(date_end,'yyyy-mm-dd') - date_orig) * 86400;
+
+    opts = weboptions('RequestMethod','post');
+    url = ['https://query1.finance.yahoo.com/v7/finance/download/%TICKER%?&period1=' num2str(date_beg) '&period2=' num2str(date_end) '&interval=1d&events=history'];
+    
+    bar = waitbar(0,'Fetching data from Yahoo! Finance...');
     
     try
-        Quandl.auth('key');
-
         for i = 1:tkrs_len
             tkr = tkrs{i};
-            tkr_spl = strsplit(tkr,'/');
-            tkr_db = tkr_spl{1};
+            tkr_data = webread(strrep(url,'%TICKER%',tkr),'historical.volatility@yahoo.com','HV',opts);
 
-            switch tkr_db
-                case 'GOOG'
-                    cols = {'Date' 'Open' 'High' 'Low' 'Close'};
-                    cols_len = length(cols);
-                case 'WIKI'
-                    cols = {'Date' 'Adj. Open' 'Adj. High' 'Adj. Low' 'Adj. Close'};
-                    cols_len = length(cols);
-                case 'YAHOO'
-                    cols = {'Date' 'Open' 'High' 'Low' 'Close' 'Adjusted Close'};
-                    cols_len = length(cols);
-                otherwise
-                    error(['The database ' tkr_db ' is not supported.']);
-            end
-            
-            [ts,head] = Quandl.get(tkr,'type','data','start_date',date_beg,'end_date',date_end);
-            
-            if (length(head) < cols_len)
+            if (width(tkr_data) < 6)
                 error(['Missing time series for ticker ' tkr '.']);
             end
 
-            ts = flipud(ts(:,ismember(head,cols)));
-            ts_len = size(ts,1);
+            ratio = tkr_data.AdjClose ./ tkr_data.Close;
+            tkr_data.Open = tkr_data.Open .* ratio;
+            tkr_data.High = tkr_data.High .* ratio;              
+            tkr_data.Low = tkr_data.Low .* ratio;
+            tkr_data.Close = tkr_data.Close .* ratio;
 
-            if (ts_len < cols_len)
-                error(['Missing time series for ticker ' tkr '.']);
-            end
-            
-            if (strcmp(tkr_db,'YAHOO'))
-                ratio = ts(:,6) ./ ts(:,5);
-                ts(:,2:5) = ts(:,2:5) .* repmat(ratio,1,4);
-            end
-            
-            ts(:,6) = [NaN; diff(log(ts(:,5)))];
-            data{i} = array2table(ts,'VariableNames',{'Date' 'Open' 'High' 'Low' 'Close' 'Return'});
+            tkr_data.Return = [NaN; diff(log(tkr_data.Close))];
+            tkr_data.AdjClose = [];
+            tkr_data.Volume = [];
 
-            tkr_dbs{i} = tkr_db;
-            
+            data{i} = tkr_data;
+
             waitbar((i / tkrs_len),bar);
-        end
-
-        if (length(unique(tkr_dbs)) ~= 1)
-            warning('For a matter of coherence, it is recommended to retrieve all the data from a single Quandl database.');
         end
         
         close(bar);
