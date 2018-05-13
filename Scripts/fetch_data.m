@@ -14,9 +14,6 @@
 %             - Close (the closing prices)
 %             - Return (the log returns)
 %            Otherwise, a vector of numeric t-by-6 tables (as described above) is returned.
-%
-% [NOTES]
-% The 'key' string passed to the Quandl.auth() call must be replaced with a valid authentication key.
 
 function data = fetch_data(varargin)
 
