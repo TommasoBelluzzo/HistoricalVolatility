@@ -1,5 +1,5 @@
 ---
-name: Bug Report
+name: Feature Request
 about: Provide a general summary of the change.
 ---
 
