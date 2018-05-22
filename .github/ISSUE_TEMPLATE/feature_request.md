@@ -1,4 +1,7 @@
-<!--- Provide a general summary of the feature above. -->
+---
+name: Bug Report
+about: Provide a general summary of the change.
+---
 
 ## Description
 
