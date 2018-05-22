@@ -9,8 +9,3 @@ It can calculate and analyse the following historical volatility estimators:
 * the Hodges-Tompkins estimator (2002);
 * the Yang-Zhang estimator (2000);
 * the Meilijson estimator (2009).
-
-## Contributions
-
-If you want to start a discussion about the project, just open an issue.
-Contributions are more than welcome, fork and create pull requests as needed.
