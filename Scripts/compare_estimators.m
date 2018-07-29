@@ -76,7 +76,6 @@ end
 
 function plot_overview(pd)
 
-    tit = [pd.Tit ' | Overview'];
     subs = NaN(pd.EstsLen,1);
     
     y_max = ceil(max(max(pd.Res)) * 100) / 100;
@@ -84,8 +83,7 @@ function plot_overview(pd)
     y_tck = y_min:0.05:y_max;
     y_lbl = sprintfc('%1.0f%%', vertcat(y_tck .* 100));
 
-    fig = figure();
-    set(fig,'Name',tit,'Units','normalized','Position',[100 100 0.6 0.6]);
+    fig = figure('Name',[pd.Tit ' | Overview'],'Units','normalized','Position',[100 100 0.85 0.85]);
 
     for i = 1:pd.EstsLen
         est = pd.Ests{i};
@@ -104,9 +102,15 @@ function plot_overview(pd)
     end
 
     set(subs,'XLim',[pd.Dates(1) pd.Dates(end)],'XMinorTick','on','YLim',[y_min y_max],'YTick',y_tck,'YTickLabel',y_lbl);
+
+    t = figure_title([pd.Tit ' | Overview']);
+    t_pos = get(t,'Position');
+    set(t,'Position',[t_pos(1) -0.0157 t_pos(3)]);
     
-    suptitle(tit);
-    movegui(fig,'center');
+    pause(0.01);
+
+    jfr = get(fig,'JavaFrame');
+    set(jfr,'Maximized',true);
 
 end
 
@@ -121,11 +125,18 @@ function plot_correlations(pd)
     z = bsxfun(@rdivide,z,s);
     z_lims = [nanmin(z(:)) nanmax(z(:))];
 
-    fig = figure();
-    set(fig,'Name',tit,'Units','normalized','Position',[100 100 0.6 0.6]);
+    fig = figure('Name',tit,'Units','normalized');
+    
+    pause(0.01);
+    jfr = get(fig,'JavaFrame');
+    set(jfr,'Maximized',true);
 
+    pause(0.01);
+    set(0,'CurrentFigure',fig);
     [h,axes,big_ax] = gplotmatrix(pd.ResCln,[],[],[],'o',2,[],'hist',pd.Ests,pd.Ests);
     set(h(logical(eye(pd.EstsLen))),'FaceColor',[0.678 0.922 1]);
+    
+    drawnow();
 
     x_lbls = get(axes,'XLabel');
     y_lbls = get(axes,'YLabel');
@@ -161,13 +172,10 @@ function plot_correlations(pd)
     end
 
     annotation('TextBox',[0 0 1 1],'String',tit,'EdgeColor','none','FontName','Helvetica','FontSize',14,'HorizontalAlignment','center');
-    movegui(fig,'center');
 
 end
 
 function plot_efficiency(pd)
-
-    tit = [pd.Tit ' | Efficiency'];
 
     effs = ones(pd.EstsLen,1);
     var_t = var(pd.ResCln(:,1));
@@ -183,24 +191,28 @@ function plot_efficiency(pd)
     y2 = effs;
     y2(1:end ~= idx) = 0;
 
-    fig = figure();
-    set(fig,'Name',tit,'Units','normalized','Position',[100 100 0.6 0.6]);
+    fig = figure('Name',[pd.Tit ' | Efficiency'],'Units','normalized','Position',[100 100 0.85 0.85]);
     
     bar(x,y1,'FaceColor',[0.678 0.922 1]);
     hold on;
         bar(x,y2,'FaceColor',[1 0 0]);
     hold off;
 
-    set(gca,'XTickLabel',pd.Ests);
+    set(gca(),'XTickLabel',pd.Ests);
 
-    suptitle(tit);
-    movegui(fig,'center');
+    t = figure_title([pd.Tit ' | Efficiency']);
+    t_pos = get(t,'Position');
+    set(t,'Position',[t_pos(1) -0.0157 t_pos(3)]);
+    
+    pause(0.01);
+
+    jfr = get(fig,'JavaFrame');
+    set(jfr,'Maximized',true);
 
 end
 
 function plot_regressions(pd)
 
-    tit = [pd.Tit ' | Regressions'];
     i_lim = 1:pd.EstsLen;
     lims = zeros(pd.EstsLen,4);
     subs = NaN(pd.EstsLen,1);
@@ -229,8 +241,7 @@ function plot_regressions(pd)
         mdls{i} = mdl_res;
     end
 
-    fig = figure();
-    set(fig,'Name',tit,'Units','normalized','Position',[100 100 0.6 0.6]);
+    fig = figure('Name',[pd.Tit ' | Regressions'],'Units','normalized','Position',[100 100 0.85 0.85]);
 
     for i = i_lim
         est = pd.Ests{i};
@@ -254,8 +265,8 @@ function plot_regressions(pd)
         hold off;
 
         strs = {sprintf('a: %.4f',mdl.A) sprintf('b: %.4f',mdl.B) sprintf('Adj. R2: %.4f',mdl.AdjR2)};
-        ann = annotation('TextBox',[0 0 1 1],'String',strs,'EdgeColor','none','FitBoxToText','on','FontSize',7);
-        set(ann,'Parent',sub,'Position',[-0.1 0.7 0.1 0.1]);
+        ann = annotation('TextBox',[0 0 1 1],'String',strs,'EdgeColor','none','FitBoxToText','on','FontSize',8);
+        set(ann,'Parent',sub,'Position',[0.0 0.6 0.1 0.1]);
         
         if (i == 1)
             leg = legend(sub,[plo_1 area_1],'OLS Estimation','95% Confidence Bounds','Location','south','Orientation','horizontal');
@@ -272,9 +283,15 @@ function plot_regressions(pd)
     end
 
     set(subs,'XLim',[min(lims(:,1))-0.1 max(lims(:,2))+0.1],'YLim',[min(lims(:,3))-0.1 max(lims(:,4))+0.1]);
-    set(leg,'Units','normalized','Position',[0.4 0.45 0.2 0.05]);
+    set(leg,'Units','normalized','Position',[0.400 0.468 0.200 0.050]);
     
-    suptitle(tit);
-    movegui(fig,'center');
+    t = figure_title([pd.Tit ' | Regressions']);
+    t_pos = get(t,'Position');
+    set(t,'Position',[t_pos(1) -0.0157 t_pos(3)]);
+
+    pause(0.01);
+
+    jfr = get(fig,'JavaFrame');
+    set(jfr,'Maximized',true);
 
 end

@@ -75,31 +75,31 @@ function data = fetch_data_internal(tkrs,date_beg,date_end)
     date_beg = (datenum(date_beg,'yyyy-mm-dd') - date_orig) * 86400;
     date_end = (datenum(date_end,'yyyy-mm-dd') - date_orig) * 86400;
 
-    opts = weboptions('RequestMethod','post');
-    url = ['https://query1.finance.yahoo.com/v7/finance/download/%TICKER%?&period1=' num2str(date_beg) '&period2=' num2str(date_end) '&interval=1d&events=history'];
-    
+    url = ['https://query1.finance.yahoo.com/v8/finance/chart/%TICKER%?symbol=%TICKER%&period1=' num2str(date_beg) '&period2=' num2str(date_end) '&interval=1d'];
+
     bar = waitbar(0,'Fetching data from Yahoo! Finance...');
     
     try
         for i = 1:tkrs_len
             tkr = tkrs{i};
-            tkr_data = webread(strrep(url,'%TICKER%',tkr),'historical.volatility@yahoo.com','HV',opts);
+            
+            tkr_data = webread(strrep(url,'%TICKER%',tkr));
+            tkr_d = tkr_data.chart.result.timestamp;
+            tkr_o = tkr_data.chart.result.indicators.quote.open;
+            tkr_h = tkr_data.chart.result.indicators.quote.high;
+            tkr_l = tkr_data.chart.result.indicators.quote.low;
+            tkr_c = tkr_data.chart.result.indicators.quote.close;
+            tkr_ac = tkr_data.chart.result.indicators.adjclose.adjclose;
 
-            if (width(tkr_data) < 6)
-                error(['Missing time series for ticker ' tkr '.']);
-            end
+            scl = tkr_ac ./ tkr_c;
+            date = (tkr_d ./ 86400) + datenum(1970,1,1);
+            open = tkr_o .* scl;
+            high = tkr_h .* scl;              
+            low = tkr_l .* scl;
+            cls = tkr_c .* scl;
+            ret = [NaN; diff(log(tkr_c))];
 
-            ratio = tkr_data.AdjClose ./ tkr_data.Close;
-            tkr_data.Open = tkr_data.Open .* ratio;
-            tkr_data.High = tkr_data.High .* ratio;              
-            tkr_data.Low = tkr_data.Low .* ratio;
-            tkr_data.Close = tkr_data.Close .* ratio;
-
-            tkr_data.Return = [NaN; diff(log(tkr_data.Close))];
-            tkr_data.AdjClose = [];
-            tkr_data.Volume = [];
-
-            data{i} = tkr_data;
+            data{i} = table(date,open,high,low,cls,ret,'VariableNames',{'Date' 'Open' 'High' 'Low' 'Close' 'Return'});
 
             waitbar((i / tkrs_len),bar);
         end

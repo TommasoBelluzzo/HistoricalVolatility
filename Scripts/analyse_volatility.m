@@ -127,10 +127,7 @@ end
 
 function plot_cones(pd)
 
-    tit = [pd.Title ' | Volatility Cones'];
-
-    fig = figure();
-    set(fig,'Name',tit,'Units','normalized','Position',[100 100 0.6 0.6]);
+    fig = figure('Name',[pd.Title ' | Volatility Cones'],'Units','normalized','Position',[100 100 0.85 0.85]);
     
     sub_1 = subplot(1,3,1:2);
     plot(sub_1,pd.Bws,pd.VolsMax,'-r',pd.Bws,pd.VolsHigh,'-b',pd.Bws,pd.VolsMed,'-g',pd.Bws,pd.VolsLow,'-c',pd.Bws,pd.VolsMin,'-k',pd.Bws,pd.VolsEnd,'--m');
@@ -152,15 +149,19 @@ function plot_cones(pd)
     y_tcks = str2double(get(sub_1,'YTickLabel'));
     set([sub_1 sub_2],'YLim',[pd.AxisMin pd.AxisMax],'YTick',y_tcks,'YTickLabel',y_lbls);
 
-    suptitle(tit);
-    movegui(fig,'center');
+    t = figure_title([pd.Title ' | Volatility Cones']);
+    t_pos = get(t,'Position');
+    set(t,'Position',[t_pos(1) -0.0157 t_pos(3)]);
+
+    pause(0.01);
+
+    jfr = get(fig,'JavaFrame');
+    set(jfr,'Maximized',true);
 
 end
 
 function plot_curves(pd)
 
-    tit = [pd.Title ' | Volatility Curves'];
-    
     vol_win = get_rolling_windows(pd.Vol,pd.Bw);
     vol_dif = NaN(length(pd.Vol) - size(vol_win,1),1);
     vol_max = [vol_dif; cellfun(@(x)nanmax(x),vol_win)];
@@ -169,8 +170,7 @@ function plot_curves(pd)
     vol_lo = [vol_dif; cellfun(@(x)quantile(x,pd.QntLow),vol_win)];
     vol_min = [vol_dif; cellfun(@(x)nanmin(x),vol_win)];
 
-    fig = figure();
-    set(fig,'Name',tit,'Units','normalized','Position',[100 100 0.6 0.6]);
+    fig = figure('Name',[pd.Title ' | Volatility Curves'],'Units','normalized','Position',[100 100 0.85 0.85]);
 
     sub_1 = subplot(1,5,1:4);
     plot(sub_1,pd.Dates,vol_max,':r',pd.Dates,vol_hi,':b',pd.Dates,vol_med,':g',pd.Dates,vol_lo,':c',pd.Dates,vol_min,':k',pd.Dates,pd.Vol,'-m');
@@ -193,17 +193,20 @@ function plot_curves(pd)
     y_tcks = str2double(get(sub_1,'YTickLabel'));
     set([sub_1 sub_2],'YLim',[pd.AxisMin pd.AxisMax],'YTick',y_tcks,'YTickLabel',y_lbls);
     
-    suptitle(tit);
-    movegui(fig,'center');
+    t = figure_title([pd.Title ' | Volatility Curves']);
+    t_pos = get(t,'Position');
+    set(t,'Position',[t_pos(1) -0.0157 t_pos(3)]);
+
+    pause(0.01);
+
+    jfr = get(fig,'JavaFrame');
+    set(jfr,'Maximized',true);
 
 end
 
 function plot_distribution(pd)
 
-    tit = [pd.Title ' | Volatility Distribution'];
-
-    fig = figure();
-    set(fig,'Name',tit,'Units','normalized','Position',[100 100 0.6 0.6]);
+    fig = figure('Name',[pd.Title ' | Volatility Distribution'],'Units','normalized','Position',[100 100 0.6 0.6]);
 
     hist = histogram(pd.Vol,100,'FaceAlpha',0.25,'Normalization','pdf');
     ax = gca;
@@ -217,7 +220,13 @@ function plot_distribution(pd)
     x_lbls = arrayfun(@(x)sprintf('%.0f%%',x),(get(ax,'XTick') .* 100),'UniformOutput',false);
     set(ax,'XTickLabel',x_lbls);
 
-    suptitle(tit);
-    movegui(fig,'center');
+    t = figure_title([pd.Title ' | Volatility Distribution']);
+    t_pos = get(t,'Position');
+    set(t,'Position',[t_pos(1) -0.0157 t_pos(3)]);
+
+    pause(0.01);
+
+    jfr = get(fig,'JavaFrame');
+    set(jfr,'Maximized',true);
 
 end
