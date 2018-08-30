@@ -22,7 +22,7 @@ The minimum Matlab version required is `R2014a`. In addition, the following prod
 
 ## Dataset
 
-The script fetches historical time series from `Yahoo! Finance`; it shound't be too difficult to replace it with an alternative data source. The example is based on the returns of `J.P. Morgan Chase & Co. (JPM)`.
+The script fetches historical time series from `Yahoo! Finance`; it shound't be too difficult to replace it with an alternative data source. The example is based on the returns of `J.P. Morgan Chase & Co. (JPM)` between January 2010 and December 2017.
 
 ## Screenshots
 
