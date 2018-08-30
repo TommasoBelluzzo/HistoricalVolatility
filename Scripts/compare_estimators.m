@@ -3,9 +3,6 @@
 % year_beg = An integer representing the start year.
 % year_end = An integer representing the end year.
 % bw       = An integer representing the bandwidth (dimension) of each rolling window (optional, default=30).
-%
-% [NOTES]
-% This function produces no outputs, its purpose is to show analysis results.
 
 function compare_estimators(varargin)
 
@@ -91,12 +88,7 @@ function plot_overview(pd)
         sub = subplot(pd.SubsRows,pd.SubsCols,i);
         plot(sub,pd.Dates,pd.Res(:,i));
         set(sub,'XTick',[]);
-        
-        if (i <= 4)
-            title(sub,est);
-        else
-            text(0.5,-0.18,est,'Units','normalized','FontName','Helvetica','FontSize',11,'FontWeight','bold','HorizontalAlignment','center');
-        end
+        title(sub,est);
         
         subs(i) = sub;
     end
@@ -255,12 +247,8 @@ function plot_regressions(pd)
         hold on;
             area_1 = area(sub,mdl.X,mdl.Z1,min(y_lim));
             set(area_1,'FaceColor','c','LineStyle','none');
-        hold off;
-        hold on;
             area_2 = area(sub,mdl.X,mdl.Z2,min(y_lim));
             set(area_2,'FaceColor','w','LineStyle','none');
-        hold off;
-        hold on;
             plo_1 = plot(sub,mdl.X,mdl.YHat,'-b');
         hold off;
 
@@ -272,18 +260,14 @@ function plot_regressions(pd)
             leg = legend(sub,[plo_1 area_1],'OLS Estimation','95% Confidence Bounds','Location','south','Orientation','horizontal');
         end
 
-        if (i <= 4)
-            title(sub,est);
-        else
-            text(0.5,-0.18,est,'Units','normalized','FontName','Helvetica','FontSize',11,'FontWeight','bold','HorizontalAlignment','center');
-        end
+        title(sub,est);
 
         lims(i,:) = [x_lim(1) x_lim(2) y_lim(1) y_lim(2)];
         subs(i) = sub;
     end
 
     set(subs,'XLim',[min(lims(:,1))-0.1 max(lims(:,2))+0.1],'YLim',[min(lims(:,3))-0.1 max(lims(:,4))+0.1]);
-    set(leg,'Units','normalized','Position',[0.400 0.468 0.200 0.050]);
+    set(leg,'Units','normalized','Position',[0.400 0.490 0.200 0.050]);
     
     t = figure_title([pd.Tit ' | Regressions']);
     t_pos = get(t,'Position');
