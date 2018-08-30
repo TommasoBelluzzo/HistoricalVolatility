@@ -14,3 +14,20 @@ This script calculates and analyses the following historical volatility estimato
 The minimum Matlab version required is `R2014a`. In addition, the following products and toolboxes must be installed in order to properly execute the script:
 * Statistics and Machine Learning Toolbox
 * System Identification Toolbox
+
+## Usage
+
+1. Edit the `run.m` script following your needs.
+1. Execute the `run.m` script.
+
+## Dataset
+
+The script fetches historical time series from `Yahoo! Finance`. It shound't be too difficult to replace it with an alternative data source.
+
+## Screenshots
+
+![Probabilistic Measures](https://i.imgur.com/1Q1SQd2.png)
+
+![Network Measures](https://i.imgur.com/NuSHgBO.png)
+
+![Network Graph](https://i.imgur.com/fpEVHPf.png)
