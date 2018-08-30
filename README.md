@@ -22,12 +22,12 @@ The minimum Matlab version required is `R2014a`. In addition, the following prod
 
 ## Dataset
 
-The script fetches historical time series from `Yahoo! Finance`. It shound't be too difficult to replace it with an alternative data source.
+The script fetches historical time series from `Yahoo! Finance`; it shound't be too difficult to replace it with an alternative data source. The example is based on the returns of `J.P. Morgan Chase & Co. (JPM)`.
 
 ## Screenshots
 
-![Probabilistic Measures](https://i.imgur.com/1Q1SQd2.png)
+![Estimators Comparison](https://i.imgur.com/XRDiosz.png)
 
-![Network Measures](https://i.imgur.com/NuSHgBO.png)
+![Estimators Correlation](https://i.imgur.com/HtoBxXP.png)
 
-![Network Graph](https://i.imgur.com/fpEVHPf.png)
+![Volatility Cones](https://i.imgur.com/YCLS43M.png)
