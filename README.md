@@ -28,8 +28,8 @@ The script fetches historical time series from `Yahoo! Finance`; it shound't be 
 
 ## Screenshots
 
+![Volatility Cones](https://i.imgur.com/YCLS43M.png)
+
 ![Estimators Comparison](https://i.imgur.com/XRDiosz.png)
 
 ![Estimators Correlation](https://i.imgur.com/HtoBxXP.png)
-
-![Volatility Cones](https://i.imgur.com/YCLS43M.png)
