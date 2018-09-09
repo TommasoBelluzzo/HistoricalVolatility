@@ -6,8 +6,8 @@ clc();
 
 [path,~,~] = fileparts(mfilename('fullpath'));
 
-if (~endsWith(path,filesep()))
-    path = [path filesep()];
+if (~strcmpi(path(end),filesep()))
+    path_base = [path filesep()];
 end
 
 paths_base = genpath(path);
