@@ -4,7 +4,7 @@
 % date_end = A string representing the end date of time series with format 'yyyy-mm-dd'.
 %
 % [OUTPUT]
-% data = If a single ticker is provided the function returns a table, otherwise a cell array of tables is returned. Each table is structured as a t-by-6 matrix containing the following time series:
+% data = A cell array of tables representing the fetched time series. Each table has the following columns:
 %   - Date (numeric observation dates)
 %   - Open (opening prices)
 %   - High (highest prices)
@@ -88,10 +88,6 @@ function data = fetch_data_internal(tickers,date_start,date_end)
     
     if (~isempty(e))
         rethrow(e);
-    end
-    
-    if (tickers_len == 1)
-        data = data{1};
     end
 
 end

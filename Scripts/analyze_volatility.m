@@ -1,6 +1,6 @@
 % [INPUT]
 % ticker = A string representing the reference ticker symbol.
-% data = A t-by-6 table containing the following time series:
+% data = A table representing the time series, with the following columns:
 %   - Date (numeric observation dates)
 %   - Open (opening prices)
 %   - High (highest prices)

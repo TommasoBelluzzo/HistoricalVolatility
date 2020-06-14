@@ -73,10 +73,18 @@ addpath(paths_base);
 
 %% EXECUTION
 
-target = 'JPM';
-date_begin = '2010-01-01';
-date_end = '2017-12-31';
-data = fetch_data(target,date_begin,date_end);
+file = fullfile(path_base,['Datasets' filesep() 'Example.xlsx']);
+[tickers_1,data_1] = parse_dataset(file,'dd/mm/yyyy');
 
-analyze_volatility(target,data,'YZ');
-compare_estimators(target,data,90);
+tickers_2 = {'GS'; 'JPM'};
+date_begin = '2009-01-01';
+date_end = '2019-12-31';
+data_2 = fetch_data(tickers_2,date_begin,date_end);
+
+tickers = [tickers_1; tickers_2];
+data = [data_1; data_2];
+
+for i = 1:numel(tickers)
+    analyze_volatility(tickers{i},data{i},'YZ');
+    compare_estimators(tickers{i},data{i},90);
+end
