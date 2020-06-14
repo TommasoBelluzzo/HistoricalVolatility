@@ -24,7 +24,7 @@ The minimum Matlab version required is `R2014a`. In addition, the following prod
 
 ## Dataset
 
-The script fetches historical time series from `Yahoo! Finance`; it shound't be too difficult to replace it with an alternative data source. The example is based on the returns of `J.P. Morgan Chase & Co. (JPM)` between January 2010 and December 2017.
+The example script fetches historical time series for `J.P. Morgan Chase & Co. (JPM)` using `Yahoo! Finance`. Every dataset passed as input argument to `analyze_volatility`, `compare_estimators` and `estimate_volatility` functions should replicate the structure observed in the example script.
 
 ## Screenshots
 
