@@ -1,14 +1,25 @@
+%% VERSION CHECK
+
+if (verLessThan('MATLAB','8.4'))
+    error('The minimum required Matlab version is R2014b.');
+end
+
+%% CLEANUP
+
 warning('off','all');
+warning('on','MATLAB:HistoricalVolatility');
 
 close('all');
 clearvars();
 clc();
 delete(allchild(0));
 
-[path,~,~] = fileparts(mfilename('fullpath'));
+%% INITIALIZATION
 
-if (~strcmpi(path(end),filesep()))
-    path_base = [path filesep()];
+[path_base,~,~] = fileparts(mfilename('fullpath'));
+
+if (~strcmpi(path_base(end),filesep()))
+    path_base = [path_base filesep()];
 end
 
 if (~isempty(regexpi(path_base,'Editor')))
@@ -16,20 +27,20 @@ if (~isempty(regexpi(path_base,'Editor')))
     is_live = ~all(cellfun(@isempty,regexpi({path_base_fs.name},'LiveEditorEvaluationHelper')));
 
     if (is_live)
-        pwd_curr = pwd();
+        pwd_current = pwd();
 
-        if (~strcmpi(pwd_curr(end),filesep()))
-            pwd_curr = [pwd_curr filesep()];
+        if (~strcmpi(pwd_current(end),filesep()))
+            pwd_current = [pwd_current filesep()];
         end
         
         while (true) 
-            ia = inputdlg('It looks like the program is being executed in a non-standard mode. Please, confirm or change the root folder of this package:','Manual Input Required',1,{pwd_curr});
+            answer = inputdlg('The script is being executed in live mode. Please, confirm or change its root folder:','Manual Input Required',1,{pwd_current});
     
-            if (isempty(ia))
+            if (isempty(answer))
                 return;
             end
             
-            path_base_new = ia{:};
+            path_base_new = answer{:};
 
             if (isempty(path_base_new) || strcmp(path_base_new,path_base) || strcmp(path_base_new(1:end-1),path_base) || ~exist(path_base_new,'dir'))
                continue;
@@ -50,9 +61,9 @@ paths_base = genpath(path_base);
 paths_base = strsplit(paths_base,';');
 
 for i = numel(paths_base):-1:1
-    path_cur = paths_base{i};
+    path_current = paths_base{i};
 
-    if (~strcmp(path_cur,path_base) && isempty(regexpi(path_cur,[filesep() 'Scripts'])))
+    if (~strcmp(path_current,path_base) && isempty(regexpi(path_current,[filesep() 'Scripts'])))
         paths_base(i) = [];
     end
 end
@@ -60,7 +71,12 @@ end
 paths_base = [strjoin(paths_base,';') ';'];
 addpath(paths_base);
 
-analyse_volatility('JPM',2010,2017,'YZ');
-compare_estimators('JPM',2010,2017,90);
+%% EXECUTION
 
-rmpath(paths_base);
+target = 'JPM';
+date_begin = '2010-01-01';
+date_end = '2017-12-31';
+data = fetch_data(target,date_begin,date_end);
+
+analyze_volatility(target,data,'YZ');
+compare_estimators(target,data,90);

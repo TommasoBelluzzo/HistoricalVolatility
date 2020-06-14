@@ -1,19 +1,16 @@
 % [INPUT]
-% tkrs     = A variable representing the ticker symbol(s) with two possible value types:
-%             - An string for a single ticker symbol.
-%             - A vector of strings for multiple ticker symbols.
-% date_beg = A string representing the start date in the format "yyyy-mm-dd".
-% date_end = A string representing the end date in the format "yyyy-mm-dd".
+% tickers = A string or a cell array of strings defining the ticker symbol(s) to fetch.
+% date_start = A string representing the start date of time series with format 'yyyy-mm-dd'.
+% date_end = A string representing the end date of time series with format 'yyyy-mm-dd'.
 %
 % [OUTPUT]
-% data     = If a single ticker symbol is provided, the function returns a numeric t-by-6 table with the following time series:
-%             - Date (the dates of the observations)
-%             - Open (the opening prices)
-%             - High (the highest prices)
-%             - Low (the lowest prices)
-%             - Close (the closing prices)
-%             - Return (the log returns)
-%            Otherwise, a vector of numeric t-by-6 tables (as described above) is returned.
+% data = If a single ticker is provided the function returns a table, otherwise a cell array of tables is returned. Each table is structured as a t-by-6 matrix containing the following time series:
+%   - Date (numeric observation dates)
+%   - Open (opening prices)
+%   - High (highest prices)
+%   - Low (lowest prices)
+%   - Close (closing prices)
+%   - Return (log returns)
 
 function data = fetch_data(varargin)
 
@@ -21,172 +18,126 @@ function data = fetch_data(varargin)
 
     if (isempty(ip))
         ip = inputParser();
-        ip.addRequired('tkrs',@(x)validateattributes(x,{'cell','char'},{'vector','nonempty'}));
-        ip.addRequired('date_beg',@(x)validateattributes(x,{'char'},{'nonempty','size',[1,NaN]}));
-        ip.addRequired('date_end',@(x)validateattributes(x,{'char'},{'nonempty','size',[1,NaN]}));        
+        ip.addRequired('tickers',@(x)validateattributes(x,{'cell' 'char'},{'vector' 'nonempty'}));
+        ip.addRequired('date_start',@(x)validateattributes(x,{'char'},{'nonempty' 'size' [1,NaN]}));
+        ip.addRequired('date_end',@(x)validateattributes(x,{'char'},{'nonempty' 'size' [1,NaN]}));        
     end
 
     ip.parse(varargin{:});
     
-    ip_res = ip.Results;
-    date_beg = ip_res.date_beg;
-    date_end = ip_res.date_end;
+    ipr = ip.Results;
+    [tickers,date_start,date_end] = validate_input(ipr.tickers,ipr.date_start,ipr.date_end);
     
-    try
-        num_beg = datenum(date_beg,'yyyy-mm-dd');
-        check = datestr(num_beg,'yyyy-mm-dd');
+    nargoutchk(1,1);
 
-        if (~isequal(check,date_beg))
-            error('Invalid end date specified.');
-        end
-    catch e
-        rethrow(e);
-    end
-
-    try
-        num_end = datenum(date_end,'yyyy-mm-dd');
-        check = datestr(num_end,'yyyy-mm-dd');
-
-        if (~isequal(check,date_end))
-            error('Invalid end date specified.');
-        end
-    catch e
-        rethrow(e);
-    end
-
-    if ((num_end - num_beg) < 30)
-        error('The start date must be anterior to the end date by at least 30 days.');
-    end
-
-    data = cache_result(ip_res.tkrs,date_beg,date_end);
+    data = fetch_data_internal(tickers,date_start,date_end);
 
 end
 
-function data = fetch_data_internal(tkrs,date_beg,date_end)
+function data = fetch_data_internal(tickers,date_start,date_end)
 
-    if (ischar(tkrs))
-        tkrs = {tkrs};
-    end
-     
-    tkrs_len = length(tkrs);
-    data = cell(tkrs_len,1);
+    tickers_len = length(tickers);
+
+    date_origin = datenum(1970,1,1);
+    date_start = (datenum(date_start,'yyyy-mm-dd') - date_origin) * 86400;
+    date_end = (datenum(date_end,'yyyy-mm-dd') - date_origin) * 86400;
+
+    url = ['https://query1.finance.yahoo.com/v8/finance/chart/%TICKER%?symbol=%TICKER%&period1=' num2str(date_start) '&period2=' num2str(date_end) '&interval=1d'];
+
+    data = cell(tickers_len,1);
     
-    date_orig = datenum('01-Jan-1970 00:00:00','dd-mmm-yyyy HH:MM:SS');
-    date_beg = (datenum(date_beg,'yyyy-mm-dd') - date_orig) * 86400;
-    date_end = (datenum(date_end,'yyyy-mm-dd') - date_orig) * 86400;
-
-    url = ['https://query1.finance.yahoo.com/v8/finance/chart/%TICKER%?symbol=%TICKER%&period1=' num2str(date_beg) '&period2=' num2str(date_end) '&interval=1d'];
-
     bar = waitbar(0,'Fetching data from Yahoo! Finance...');
+    e = [];
     
     try
-        for i = 1:tkrs_len
-            tkr = tkrs{i};
-            
-            tkr_data = webread(strrep(url,'%TICKER%',tkr));
-            tkr_d = tkr_data.chart.result.timestamp;
-            tkr_o = tkr_data.chart.result.indicators.quote.open;
-            tkr_h = tkr_data.chart.result.indicators.quote.high;
-            tkr_l = tkr_data.chart.result.indicators.quote.low;
-            tkr_c = tkr_data.chart.result.indicators.quote.close;
-            tkr_ac = tkr_data.chart.result.indicators.adjclose.adjclose;
 
-            scl = tkr_ac ./ tkr_c;
-            date = (tkr_d ./ 86400) + datenum(1970,1,1);
-            open = tkr_o .* scl;
-            high = tkr_h .* scl;              
-            low = tkr_l .* scl;
-            cls = tkr_c .* scl;
-            ret = [NaN; diff(log(tkr_c))];
+        for i = 1:tickers_len
+            ticker = tickers{i};
+            
+            response = webread(strrep(url,'%TICKER%',ticker));
+            response_d = response.chart.result.timestamp;
+            response_o = response.chart.result.indicators.quote.open;
+            response_h = response.chart.result.indicators.quote.high;
+            response_l = response.chart.result.indicators.quote.low;
+            response_c = response.chart.result.indicators.quote.close;
+            response_ac = response.chart.result.indicators.adjclose.adjclose;
+
+            scale = response_ac ./ response_c;
+
+            date = (response_d ./ 86400) + date_origin;
+            open = response_o .* scale;
+            high = response_h .* scale;              
+            low = response_l .* scale;
+            cls = response_c .* scale;
+            ret = [NaN; diff(log(response_c))];
 
             data{i} = table(date,open,high,low,cls,ret,'VariableNames',{'Date' 'Open' 'High' 'Low' 'Close' 'Return'});
 
-            waitbar((i / tkrs_len),bar);
+            waitbar((i / tickers_len),bar);
         end
         
-        close(bar);
-        
-        if (tkrs_len == 1)
-            data = data{1};
-        end
+         waitbar(1,bar);
+
     catch e
-        close(bar);
+    end
+    
+    try
+        delete(bar);
+    catch
+    end
+    
+    if (~isempty(e))
         rethrow(e);
+    end
+    
+    if (tickers_len == 1)
+        data = data{1};
     end
 
 end
 
-function varargout = cache_result(varargin)
+function [tickers,date_start,date_end] = validate_input(tickers,date_start,date_end)
 
-    persistent cache;
-
-    args = varargin;
-    fun = @fetch_data_internal;
-    now = cputime;
-    
-    key = [args {@fetch_data_internal,nargout}];
-    key_inf = whos('key');
-    key_sid = sprintf('s%.0f',key_inf.bytes);
+    if (ischar(tickers))
+        tickers = {tickers};
+    else
+        if (~iscellstr(tickers) || any(cellfun(@length,tickers) == 0) || any(cellfun(@(x)size(x,1),tickers) ~= 1)) %#ok<ISCLSTR>
+            error(['The value of ''tickers'' is invalid.' newline() 'Expected input to be a cell array of non-empty character vectors.']);
+        end
+        
+        if (numel(unique(tickers)) ~= numel(tickers))
+            error(['The value of ''tickers'' is invalid.' newline() 'Expected input to be contain only unique character vectors.']);
+        end
+    end
 
     try
-        pool = cache.(key_sid);
+        dn_start = datenum(date_start,'yyyy-mm-dd');
+        check = datestr(dn_start,'yyyy-mm-dd');
 
-        for i = 1:length(pool.Inps)
-            if (isequaln(key,pool.Inps{i}))
-                varargout = pool.Outs{i};
-
-                pool.Frqs(i) = pool.Frqs(i) + 1;
-                pool.Lcnt = pool.Lcnt + 1;
-                pool.Luse(i) = now;
-
-                if (pool.Lcnt > cache.Cfg.ResFre)
-                    [pool.Frqs,inds] = sort(pool.Frqs,'descend');
-
-                    pool.Inps = pool.Inps(inds);
-                    pool.Lcnt = 0;
-                    pool.Luse = pool.Luse(inds);
-                    pool.Outs = pool.Outs(inds);
-                end
-
-                cache.(key_sid) = pool;
-
-                return;
-            end
+        if (~isequal(check,date_start))
+            error(['The value of ''date_start'' is invalid.' newline() 'Expected input to be a valid date with format ''yyyy-mm-dd''.']);
         end
-    catch
-        pool = struct('Frqs',{[]},'Inps',{{}},'Lcnt',{0},'Luse',{[]},'Outs',{{}});
+    catch e
+        rethrow(e);
     end
 
-    if (~exist('varargout','var'))
-        if (~isfield(cache,'Cfg'))
-            cache.Cfg = struct();
-            cache.Cfg.GrpSiz = 100;
-            cache.Cfg.MaxSizKey = 100000000;
-            cache.Cfg.MaxSizRes = 100000000;
-            cache.Cfg.ResFre = 10;
+    try
+        dn_end = datenum(date_end,'yyyy-mm-dd');
+        check = datestr(dn_end,'yyyy-mm-dd');
+
+        if (~isequal(check,date_end))
+            error(['The value of ''date_end'' is invalid.' newline() 'Expected input to be a valid date with format ''yyyy-mm-dd''.']);
         end
-
-        [varargout{1:nargout}] = fun(varargin{:});
-        var_inf = whos('varargout');
-
-        if ((var_inf.bytes <= cache.Cfg.MaxSizRes) && (key_inf.bytes <= cache.Cfg.MaxSizKey))
-            pool.Frqs(end+1) = 1;
-            pool.Inps{end+1} = key;
-            pool.Lcnt = 0;
-            pool.Luse(end+1) = now;
-            pool.Outs{end+1} = varargout;
-
-            while (length(pool.Inps) > cache.Cfg.GrpSiz)
-                [~,idx] = min(pool.Luse);
-
-                pool.Luse(idx) = [];
-                pool.Frqs(idx) = [];
-                pool.Inps(idx) = [];
-                pool.Outs(idx) = [];
-            end
-
-            cache.(key_sid) = pool;
-        end
+    catch e
+        rethrow(e);
+    end
+    
+    if (dn_start > dn_end)
+        error('The date defined by the ''date_start'' parameter must preceed by one defined by the ''date_end'' parameter.');
     end
 
+    if ((dn_end - dn_start) < 30)
+        error('There must be a delay of least 30 days between the date defined by the ''date_start'' parameter and the one defined by the ''date_end'' parameter.');
+    end
+    
 end
