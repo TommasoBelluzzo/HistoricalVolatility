@@ -24,7 +24,15 @@ The minimum Matlab version required is `R2014a`. In addition, the following prod
 
 ## Dataset
 
-The example script fetches historical time series for `J.P. Morgan Chase & Co. (JPM)` using `Yahoo! Finance`. Every dataset passed as input argument to `analyze_volatility`, `compare_estimators` and `estimate_volatility` functions should replicate the structure observed in the aforementioned example.
+Datasets can be fetched from `Yahoo! Finance` using the function `fetch_data`, or parsed from `Excel` sheets using the function `parse_dataset`. The example script provides a good overview of both approaches.
+
+Every dataset passed as input argument to `analyze_volatility`, `compare_estimators` and `estimate_volatility` functions must be structured as tables of historical time series having the following columns:
+ - Date (numeric observation dates)
+ - Open (opening prices)
+ - High (highest prices)
+ - Low (lowest prices)
+ - Close (closing prices)
+ - Return (log returns)
 
 ## Screenshots
 
