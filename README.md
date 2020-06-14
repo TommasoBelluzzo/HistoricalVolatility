@@ -26,7 +26,7 @@ The minimum Matlab version required is `R2014a`. In addition, the following prod
 
 Datasets can be fetched from `Yahoo! Finance` using the function `fetch_data`, or parsed from `Excel` sheets using the function `parse_dataset`. The example script provides a good overview of both approaches.
 
-Every dataset passed as input argument to `analyze_volatility`, `compare_estimators` and `estimate_volatility` functions must be structured as tables of historical time series having the following columns:
+Every dataset passed as input argument to `analyze_volatility`, `compare_estimators` and `estimate_volatility` functions must be structured as a table of historical time series having the following columns:
  - Date (numeric observation dates)
  - Open (opening prices)
  - High (highest prices)
